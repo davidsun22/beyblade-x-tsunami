@@ -1001,6 +1001,283 @@ let roundResults = [];
 
 const SETUP_STEPS = ['name', 'type', 'blade', 'ratchet-bit', 'picture', 'launcher'];
 
+// ==================== SOUND ENGINE (Web Audio API) ====================
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+const SFX = {
+  // Countdown beep — short sine tone
+  countdownBeep(pitch = 440) {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = pitch;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.2);
+  },
+
+  // "LET IT RIP" — rising sweep with burst
+  letItRip() {
+    const ctx = getAudioCtx();
+    // Rising sweep
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+    // Impact burst
+    const noise = ctx.createBufferSource();
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+    noise.buffer = buf;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.3, ctx.currentTime + 0.25);
+    ng.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+    noise.connect(ng);
+    ng.connect(ctx.destination);
+    noise.start(ctx.currentTime + 0.25);
+  },
+
+  // Collision — heavy metal-on-metal clang
+  collision(intensity = 0.5) {
+    const ctx = getAudioCtx();
+    const vol = Math.min(0.4, intensity * 0.3);
+    const t = ctx.currentTime;
+
+    // Sharp metallic attack — short burst of inharmonic frequencies (like two metal tops hitting)
+    const metalFreqs = [1200, 1870, 2450, 3100, 4200];
+    metalFreqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      osc.type = i % 2 === 0 ? 'square' : 'triangle';
+      osc.frequency.value = freq + (Math.random() - 0.5) * 150;
+      filter.type = 'bandpass';
+      filter.frequency.value = freq;
+      filter.Q.value = 15 + Math.random() * 10;
+      // Sharp attack, medium ring-out
+      const ringTime = 0.15 + (i * 0.06);
+      gain.gain.setValueAtTime(vol * (0.3 - i * 0.04), t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + ringTime);
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + ringTime);
+    });
+
+    // Low clunk body — gives the hit weight
+    const clunk = ctx.createOscillator();
+    const cg = ctx.createGain();
+    clunk.type = 'sine';
+    clunk.frequency.setValueAtTime(250 + Math.random() * 80, t);
+    clunk.frequency.exponentialRampToValueAtTime(80, t + 0.15);
+    cg.gain.setValueAtTime(vol * 0.7, t);
+    cg.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    clunk.connect(cg);
+    cg.connect(ctx.destination);
+    clunk.start(t);
+    clunk.stop(t + 0.15);
+
+    // Metallic ring tail — the lingering "tinnng" after metal hits
+    const ring = ctx.createOscillator();
+    const rg = ctx.createGain();
+    const rf = ctx.createBiquadFilter();
+    ring.type = 'sine';
+    ring.frequency.value = 2800 + Math.random() * 400;
+    rf.type = 'bandpass';
+    rf.frequency.value = ring.frequency.value;
+    rf.Q.value = 30;
+    rg.gain.setValueAtTime(vol * 0.2, t + 0.02);
+    rg.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+    ring.connect(rf);
+    rf.connect(rg);
+    rg.connect(ctx.destination);
+    ring.start(t);
+    ring.stop(t + 0.45);
+
+    // Impact noise burst — the initial "crack" of contact
+    const noise = ctx.createBufferSource();
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 1.5);
+    noise.buffer = buf;
+    const nf = ctx.createBiquadFilter();
+    nf.type = 'highpass';
+    nf.frequency.value = 1500;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(vol * 0.5, t);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    noise.connect(nf);
+    nf.connect(ng);
+    ng.connect(ctx.destination);
+    noise.start(t);
+  },
+
+  // Grind — soft low hum for sustained Beyblade-to-Beyblade contact
+  _grindActive: false,
+  grind() {
+    if (SFX._grindActive) return;
+    SFX._grindActive = true;
+    const ctx = getAudioCtx();
+    const t = ctx.currentTime;
+    // Low rumbling hum
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 120 + Math.random() * 40;
+    gain.gain.setValueAtTime(0.06, t);
+    gain.gain.linearRampToValueAtTime(0.08, t + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.18);
+    // Gentle filtered noise — soft scraping texture
+    const noise = ctx.createBufferSource();
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.3 * (1 - i / data.length);
+    noise.buffer = buf;
+    const nf = ctx.createBiquadFilter();
+    nf.type = 'bandpass';
+    nf.frequency.value = 600;
+    nf.Q.value = 3;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.04, t);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+    noise.connect(nf);
+    nf.connect(ng);
+    ng.connect(ctx.destination);
+    noise.start(t);
+    setTimeout(() => { SFX._grindActive = false; }, 120);
+  },
+
+  // Rail hit — scraping metallic screech
+  railHit() {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(300, ctx.currentTime + 0.25);
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    // Filter for metallic tone
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1500;
+    filter.Q.value = 5;
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.25);
+    // Scrape noise
+    const noise = ctx.createBufferSource();
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.5 * (1 - i / data.length);
+    noise.buffer = buf;
+    const nf = ctx.createBiquadFilter();
+    nf.type = 'highpass';
+    nf.frequency.value = 2000;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.12, ctx.currentTime);
+    ng.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    noise.connect(nf);
+    nf.connect(ng);
+    ng.connect(ctx.destination);
+    noise.start(ctx.currentTime);
+  },
+
+  // Burst — dramatic explosion
+  burst() {
+    const ctx = getAudioCtx();
+    // Low boom
+    const boom = ctx.createOscillator();
+    const bg = ctx.createGain();
+    boom.type = 'sine';
+    boom.frequency.setValueAtTime(150, ctx.currentTime);
+    boom.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.6);
+    bg.gain.setValueAtTime(0.4, ctx.currentTime);
+    bg.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    boom.connect(bg);
+    bg.connect(ctx.destination);
+    boom.start(ctx.currentTime);
+    boom.stop(ctx.currentTime + 0.6);
+    // Noise explosion
+    const noise = ctx.createBufferSource();
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 0.5, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2);
+    noise.buffer = buf;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.35, ctx.currentTime);
+    ng.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    noise.connect(ng);
+    ng.connect(ctx.destination);
+    noise.start(ctx.currentTime);
+    // High shatter
+    const shatter = ctx.createOscillator();
+    const sg = ctx.createGain();
+    shatter.type = 'square';
+    shatter.frequency.setValueAtTime(2000, ctx.currentTime);
+    shatter.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.3);
+    sg.gain.setValueAtTime(0.15, ctx.currentTime);
+    sg.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    shatter.connect(sg);
+    sg.connect(ctx.destination);
+    shatter.start(ctx.currentTime);
+    shatter.stop(ctx.currentTime + 0.3);
+  },
+
+  // Spin low warning — wobbling hum that plays periodically
+  _spinWarnActive: [false, false],
+  spinLowWarning(beyIdx) {
+    if (SFX._spinWarnActive[beyIdx]) return;
+    SFX._spinWarnActive[beyIdx] = true;
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(80, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(60, ctx.currentTime + 0.4);
+    // Wobble via LFO
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 8;
+    lfoGain.gain.value = 15;
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.frequency);
+    lfo.start(ctx.currentTime);
+    lfo.stop(ctx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.18, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+    setTimeout(() => { SFX._spinWarnActive[beyIdx] = false; }, 800);
+  }
+};
+
 // Default ratchet/bit by type
 const DEFAULT_PARTS = {
   'ATTACK':  { ratchet: RATCHETS[0], bit: BITS[0] },  // 3-60, Flat
@@ -1552,11 +1829,17 @@ function runBattleCountdown() {
   }
 
   drawCountdownText(steps[0]);
+  SFX.countdownBeep(440);
 
   const interval = setInterval(() => {
     stepIdx++;
     if (stepIdx < steps.length) {
       drawCountdownText(steps[stepIdx]);
+      if (steps[stepIdx] === 'LET IT RIP!') {
+        SFX.letItRip();
+      } else {
+        SFX.countdownBeep(stepIdx === 1 ? 520 : 620);
+      }
     } else {
       clearInterval(interval);
       launchAllBeys();
@@ -1935,6 +2218,11 @@ function battleLoop() {
     const spinDecay = 0.012 / (1 + bey.sta * 0.12);
     bey.spin -= spinDecay * dtFactor;
 
+    // Spin low warning sound
+    if (bey.spin < bey.maxSpin * 0.2 && bey.spin > 0) {
+      SFX.spinLowWarning(idx);
+    }
+
     // Movement based on type
     const moveSpeed = (0.5 + bey.atk * 0.15) * (bey.spin / bey.maxSpin);
     const time = battleState.time * 0.02;
@@ -2090,6 +2378,7 @@ function battleLoop() {
         const tangentDot = bey.vx * tangentVx + bey.vy * tangentVy;
         bey.railDir = tangentDot >= 0 ? 1 : -1;
         battleState.railGlow = 15;
+        SFX.railHit();
         // Drain 25% spin on rail hit
         bey.spin *= 0.75;
         // Speed particles on entry
@@ -2106,6 +2395,7 @@ function battleLoop() {
 
         if (distFromCenter > radius - railWidth - bey.radius) {
           battleState.railGlow = 15;
+          SFX.railHit();
           // Drain 25% spin on rail hit
           bey.spin *= 0.75;
         }
@@ -2171,6 +2461,16 @@ function battleLoop() {
       // Screen shake
       battleState.screenShake = Math.min(impactSpeed * 2, 10);
 
+      // Collision sound — hard clang for big hits, soft grind for sustained contact
+      if (impactSpeed > 3) {
+        if (!battleState.lastClangTime || battleState.time - battleState.lastClangTime > 8) {
+          SFX.collision(impactSpeed / 15);
+          battleState.lastClangTime = battleState.time;
+        }
+      } else if (impactSpeed > 0.5) {
+        SFX.grind();
+      }
+
       // Spark particles
       const sparkX = (beys[0].x + beys[1].x) / 2;
       const sparkY = (beys[0].y + beys[1].y) / 2;
@@ -2202,6 +2502,7 @@ function battleLoop() {
       if (bey.preBurstTimer <= 0) {
         // Now actually burst
         bey.burst = true;
+        SFX.burst();
         for (let j = 0; j < 30; j++) {
           particles.push(createParticle(bey.x, bey.y, bey.color, 'explosion'));
         }
@@ -2534,6 +2835,132 @@ function battleLoop() {
         const sa = Math.random() * Math.PI * 2;
         const sr = Math.random() * stArea * 0.8;
         particles.push(createParticle(cx + Math.cos(sa) * sr, cy + Math.sin(sa) * sr, '#cc00ff', 'spark'));
+      }
+    }
+    ctx.restore();
+  }
+
+  if (stadiumName === 'Galaxy Arena') {
+    ctx.save();
+    const stArea = radius - railWidth - 5;
+
+    // Initialize stars and galaxies once
+    if (!battleState.galaxyStars) {
+      battleState.galaxyStars = [];
+      for (let i = 0; i < 120; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * stArea * 0.95;
+        battleState.galaxyStars.push({
+          x: cx + Math.cos(angle) * dist,
+          y: cy + Math.sin(angle) * dist,
+          size: 0.5 + Math.random() * 2,
+          twinkleSpeed: 2 + Math.random() * 5,
+          twinkleOffset: Math.random() * Math.PI * 2,
+          color: ['#ffffff', '#aaccff', '#ffccaa', '#ccaaff', '#aaffee'][Math.floor(Math.random() * 5)]
+        });
+      }
+      battleState.galaxies = [];
+      for (let i = 0; i < 4; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 40 + Math.random() * (stArea * 0.7);
+        battleState.galaxies.push({
+          x: cx + Math.cos(angle) * dist,
+          y: cy + Math.sin(angle) * dist,
+          size: 25 + Math.random() * 40,
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.3,
+          arms: 2 + Math.floor(Math.random() * 3),
+          color1: ['#6600cc', '#0044ff', '#cc00ff', '#0088ff'][i],
+          color2: ['#aa44ff', '#4488ff', '#ff44cc', '#44bbff'][i]
+        });
+      }
+    }
+
+    // Draw twinkling stars
+    battleState.galaxyStars.forEach(s => {
+      const dist = Math.sqrt((s.x - cx) ** 2 + (s.y - cy) ** 2);
+      if (dist < stArea) {
+        const twinkle = 0.3 + Math.sin(battleState.time * s.twinkleSpeed + s.twinkleOffset) * 0.4;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fillStyle = s.color;
+        ctx.globalAlpha = Math.max(0.1, twinkle);
+        ctx.fill();
+        // Star glow
+        if (s.size > 1.2) {
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size * 3, 0, Math.PI * 2);
+          ctx.fillStyle = s.color;
+          ctx.globalAlpha = twinkle * 0.15;
+          ctx.fill();
+        }
+      }
+    });
+    ctx.globalAlpha = 1;
+
+    // Draw spiral galaxies
+    battleState.galaxies.forEach(g => {
+      const dist = Math.sqrt((g.x - cx) ** 2 + (g.y - cy) ** 2);
+      if (dist > stArea + g.size) return;
+      g.rotation += g.rotSpeed * 0.016;
+      ctx.save();
+      ctx.translate(g.x, g.y);
+      ctx.rotate(g.rotation);
+
+      // Galaxy core glow
+      const coreGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, g.size * 0.3);
+      coreGrad.addColorStop(0, g.color2 + '33');
+      coreGrad.addColorStop(1, g.color1 + '00');
+      ctx.beginPath();
+      ctx.arc(0, 0, g.size * 0.3, 0, Math.PI * 2);
+      ctx.fillStyle = coreGrad;
+      ctx.fill();
+
+      // Spiral arms
+      for (let a = 0; a < g.arms; a++) {
+        const armBase = (a / g.arms) * Math.PI * 2;
+        ctx.beginPath();
+        for (let t = 0; t < 60; t++) {
+          const progress = t / 60;
+          const spiralR = progress * g.size;
+          const spiralA = armBase + progress * Math.PI * 2.5;
+          const px = Math.cos(spiralA) * spiralR;
+          const py = Math.sin(spiralA) * spiralR;
+          if (t === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        const armAlpha = 0.08 + Math.sin(battleState.time * 1.5 + a) * 0.03;
+        ctx.strokeStyle = `${g.color2}${Math.floor(armAlpha * 255).toString(16).padStart(2, '0')}`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+
+      // Scattered arm stars
+      for (let a = 0; a < g.arms; a++) {
+        const armBase = (a / g.arms) * Math.PI * 2;
+        for (let s = 0; s < 8; s++) {
+          const progress = 0.1 + (s / 8) * 0.85;
+          const spiralA = armBase + progress * Math.PI * 2.5 + (Math.random() - 0.5) * 0.4;
+          const spiralR = progress * g.size + (Math.random() - 0.5) * 6;
+          const sx = Math.cos(spiralA) * spiralR;
+          const sy = Math.sin(spiralA) * spiralR;
+          const starAlpha = 0.15 + Math.sin(battleState.time * 3 + s + a) * 0.1;
+          ctx.beginPath();
+          ctx.arc(sx, sy, 0.8 + Math.random(), 0, Math.PI * 2);
+          ctx.fillStyle = g.color2;
+          ctx.globalAlpha = Math.max(0.05, starAlpha);
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    });
+
+    // Shooting star on collisions
+    if (battleState.railGlow > 0) {
+      for (let i = 0; i < 3; i++) {
+        const sa = Math.random() * Math.PI * 2;
+        const sr = Math.random() * stArea;
+        particles.push(createParticle(cx + Math.cos(sa) * sr, cy + Math.sin(sa) * sr, '#aaccff', 'speed'));
       }
     }
     ctx.restore();
