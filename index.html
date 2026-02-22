@@ -1,0 +1,2882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BEYBLADE X TSUNAMI: XTREME BATTLE ARENA</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0a1a;
+  --bg2: #12122a;
+  --neon-blue: #00d4ff;
+  --neon-pink: #ff00aa;
+  --neon-gold: #ffd700;
+  --neon-green: #00ff88;
+  --neon-red: #ff3366;
+  --text: #e0e0ff;
+  --text-dim: #8888aa;
+  --card-bg: #1a1a3a;
+  --card-border: #2a2a5a;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; }
+
+/* Screen management */
+.screen { display: none; min-height: 100vh; padding: 20px; animation: fadeIn 0.5s ease; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ========== TITLE SCREEN ========== */
+#title-screen {
+  justify-content: center;
+  text-align: center;
+  background: radial-gradient(ellipse at center, #1a1040 0%, var(--bg) 70%);
+  position: relative;
+  overflow: hidden;
+}
+
+#title-screen::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 600px; height: 600px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+  animation: pulse-bg 3s ease-in-out infinite;
+}
+
+@keyframes pulse-bg { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.2); } }
+
+.title-main {
+  font-size: clamp(1.8rem, 5vw, 3.5rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink), var(--neon-gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  position: relative;
+  z-index: 1;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
+.title-sub {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  margin-bottom: 40px;
+  position: relative; z-index: 1;
+  letter-spacing: 3px;
+}
+
+/* Spinning Beyblade CSS */
+.title-logo {
+  width: 280px;
+  max-width: 80vw;
+  margin: 20px auto;
+  position: relative; z-index: 1;
+  filter: drop-shadow(0 0 20px rgba(0,212,255,0.4)) drop-shadow(0 0 40px rgba(255,0,170,0.2));
+  animation: logo-float 3s ease-in-out infinite;
+}
+
+@keyframes logo-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.03); }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-start {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.3rem; font-weight: 700;
+  padding: 18px 50px;
+  border: 2px solid var(--neon-blue);
+  background: transparent;
+  color: var(--neon-blue);
+  cursor: pointer;
+  position: relative; z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  transition: all 0.3s;
+  animation: glow-pulse 2s ease-in-out infinite;
+  margin-top: 20px;
+}
+
+.btn-start:hover {
+  background: rgba(0,212,255,0.15);
+  box-shadow: 0 0 30px rgba(0,212,255,0.4);
+  transform: scale(1.05);
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(0,212,255,0.3); }
+  50% { box-shadow: 0 0 25px rgba(0,212,255,0.6); }
+}
+
+.btn-how-to {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.95rem;
+  padding: 10px 25px;
+  border: 1px solid var(--text-dim);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  margin-top: 15px;
+  transition: all 0.3s;
+  position: relative; z-index: 1;
+}
+
+.btn-how-to:hover { border-color: var(--text); color: var(--text); }
+
+/* ========== HOW TO PLAY MODAL ========== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85); z-index: 100;
+  justify-content: center; align-items: center; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+
+.modal-content {
+  background: var(--bg2);
+  border: 1px solid var(--neon-blue);
+  box-shadow: 0 0 30px rgba(0,212,255,0.2);
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 600px; width: 100%;
+  max-height: 80vh; overflow-y: auto;
+}
+
+.modal-content h2 { color: var(--neon-blue); font-size: 1.4rem; margin-bottom: 20px; text-align: center; }
+.modal-content h3 { color: var(--neon-gold); font-size: 1rem; margin: 15px 0 8px; }
+.modal-content p { font-size: 0.95rem; line-height: 1.6; margin-bottom: 8px; color: var(--text-dim); }
+.modal-content .score-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--card-border); }
+.modal-content .score-label { color: var(--text); }
+.modal-content .score-pts { color: var(--neon-gold); font-weight: 700; }
+
+.btn-close-modal {
+  display: block; margin: 20px auto 0;
+  font-family: 'Orbitron', sans-serif;
+  padding: 10px 30px;
+  border: 1px solid var(--neon-pink);
+  background: transparent;
+  color: var(--neon-pink);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+.btn-close-modal:hover { background: rgba(255,0,170,0.15); }
+
+/* ========== SETUP SCREENS ========== */
+.setup-screen { max-width: 900px; width: 100%; padding-top: 30px; }
+
+.player-header {
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  text-align: center;
+  margin-bottom: 25px;
+  padding: 12px;
+  border: 2px solid;
+  border-radius: 8px;
+}
+.player-header.p1 { color: var(--neon-blue); border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0,212,255,0.2); }
+.player-header.p2 { color: var(--neon-pink); border-color: var(--neon-pink); box-shadow: 0 0 15px rgba(255,0,170,0.2); }
+
+.step-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: var(--neon-gold);
+  margin-bottom: 15px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* Text input */
+.text-input-wrap { text-align: center; margin-bottom: 20px; }
+
+.text-input {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.2rem; font-weight: 600;
+  padding: 12px 20px;
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  color: var(--text);
+  border-radius: 8px;
+  width: 100%; max-width: 400px;
+  text-align: center;
+  transition: border-color 0.3s;
+}
+.text-input:focus { outline: none; border-color: var(--neon-blue); box-shadow: 0 0 10px rgba(0,212,255,0.2); }
+
+/* Card grids */
+.card-grid {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 25px;
+}
+.card-grid.avatars { grid-template-columns: repeat(5, 1fr); }
+.card-grid.types { grid-template-columns: repeat(2, 1fr); }
+.card-grid.blades { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.card-grid.ratchets { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.card-grid.bits { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.card-grid.pictures { grid-template-columns: repeat(4, 1fr); }
+.card-grid.launchers { grid-template-columns: repeat(2, 1fr); }
+.card-grid.stadiums { grid-template-columns: repeat(2, 1fr); }
+
+.card {
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: 10px;
+  padding: 15px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.card:hover {
+  border-color: var(--neon-blue);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 20px rgba(0,212,255,0.15);
+}
+
+.card.selected {
+  border-color: var(--neon-gold);
+  box-shadow: 0 0 20px rgba(255,215,0,0.3);
+  background: linear-gradient(135deg, rgba(255,215,0,0.08), var(--card-bg));
+}
+
+.card.selected::after {
+  content: '✓';
+  position: absolute; top: 6px; right: 8px;
+  color: var(--neon-gold);
+  font-size: 1rem; font-weight: 700;
+}
+
+.card-icon { font-size: 2rem; display: block; margin-bottom: 6px; }
+.card-name { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; }
+.card-desc { font-size: 0.8rem; color: var(--text-dim); line-height: 1.3; }
+
+.card-stat {
+  display: flex; justify-content: space-between;
+  font-size: 0.75rem; padding: 2px 0;
+  color: var(--text-dim);
+}
+.card-stat span:last-child { color: var(--neon-blue); font-weight: 600; }
+
+/* Avatar cards */
+.card.avatar { padding: 10px; }
+.card.avatar .card-icon { font-size: 2.5rem; }
+
+/* Picture cards */
+.card.picture {
+  padding: 12px;
+  border-radius: 12px;
+}
+.card.picture .card-icon { font-size: 2.8rem; }
+.card.picture .card-name { font-size: 0.7rem; margin-top: 4px; }
+
+/* Type cards */
+.card.type-card { padding: 20px 15px; }
+.card.type-card .card-icon { font-size: 2.5rem; }
+.card.type-card .card-name { font-size: 0.85rem; margin: 6px 0; }
+
+/* Blade cards with colored top border */
+.card.blade-card { border-top-width: 4px; }
+
+/* Stadium cards */
+.card.stadium-card { padding: 25px 15px; }
+.card.stadium-card .card-icon { font-size: 3rem; }
+
+/* Next button */
+.btn-next {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem; font-weight: 700;
+  padding: 14px 40px;
+  border: 2px solid var(--neon-green);
+  background: transparent;
+  color: var(--neon-green);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.3s;
+  margin: 20px auto;
+  display: block;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.btn-next.enabled { opacity: 1; pointer-events: all; }
+.btn-next.enabled:hover { background: rgba(0,255,136,0.15); box-shadow: 0 0 20px rgba(0,255,136,0.3); transform: scale(1.03); }
+
+/* ========== BEYBLADE PREVIEW ========== */
+.bey-preview {
+  display: flex; flex-direction: column; align-items: center;
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background: var(--card-bg);
+}
+
+.bey-preview-visual {
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  position: relative;
+  margin-bottom: 15px;
+  animation: spin 3s linear infinite;
+}
+
+.bey-preview-ring {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  border: 5px solid;
+  position: absolute;
+  box-shadow: 0 0 15px;
+}
+
+.bey-preview-emoji {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.5rem;
+  animation: counter-spin 3s linear infinite;
+}
+
+@keyframes counter-spin { to { transform: translate(-50%, -50%) rotate(-360deg); } }
+
+.bey-preview-parts {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.bey-preview-parts span { color: var(--text); font-weight: 600; }
+
+/* ========== PRE-BATTLE SUMMARY ========== */
+#pre-battle { background: radial-gradient(ellipse at center, #1a1040 0%, var(--bg) 70%); }
+
+.summary-container {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  max-width: 900px;
+  width: 100%;
+  align-items: start;
+  margin: 20px 0;
+}
+
+.summary-player {
+  background: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.summary-player.p1 { border-color: rgba(0,212,255,0.3); }
+.summary-player.p2 { border-color: rgba(255,0,170,0.3); }
+
+.summary-avatar { font-size: 3rem; margin-bottom: 8px; }
+.summary-name { font-family: 'Orbitron', sans-serif; font-size: 1rem; margin-bottom: 4px; }
+.summary-bey-name { color: var(--neon-gold); font-size: 0.9rem; margin-bottom: 12px; }
+
+.summary-bey-visual {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  position: relative;
+  animation: spin 3s linear infinite;
+}
+
+.summary-parts { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px; line-height: 1.6; }
+.summary-launcher { font-size: 0.85rem; color: var(--neon-green); }
+
+.summary-vs {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem; font-weight: 900;
+  color: var(--neon-red);
+  align-self: center;
+  text-shadow: 0 0 20px rgba(255,51,102,0.5);
+}
+
+/* Stat bars */
+.stat-bars { margin-top: 15px; }
+
+.stat-bar-row {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px; font-size: 0.8rem;
+}
+
+.stat-bar-label { width: 55px; text-align: right; color: var(--text-dim); font-size: 0.7rem; font-family: 'Orbitron', sans-serif; }
+
+.stat-bar-track {
+  flex: 1; height: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 5px; overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 1s ease;
+}
+.stat-bar-fill.atk { background: linear-gradient(90deg, var(--neon-red), #ff6644); }
+.stat-bar-fill.sta { background: linear-gradient(90deg, var(--neon-blue), #44aaff); }
+.stat-bar-fill.def { background: linear-gradient(90deg, var(--neon-green), #44ff88); }
+
+.stat-bar-val { width: 25px; font-weight: 700; font-size: 0.8rem; }
+
+/* Stadium display */
+.summary-stadium {
+  text-align: center;
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  max-width: 400px;
+  width: 100%;
+}
+
+.summary-stadium .card-icon { font-size: 2rem; }
+.summary-stadium .card-name { font-size: 0.9rem; color: var(--neon-gold); }
+
+/* Countdown button */
+.btn-countdown {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.4rem; font-weight: 900;
+  padding: 20px 50px;
+  border: 3px solid var(--neon-red);
+  background: transparent;
+  color: var(--neon-red);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  transition: all 0.3s;
+  margin-top: 20px;
+  animation: glow-pulse-red 2s ease-in-out infinite;
+}
+
+.btn-countdown:hover { background: rgba(255,51,102,0.15); transform: scale(1.05); }
+
+@keyframes glow-pulse-red {
+  0%, 100% { box-shadow: 0 0 10px rgba(255,51,102,0.3); }
+  50% { box-shadow: 0 0 30px rgba(255,51,102,0.6); }
+}
+
+/* Countdown overlay */
+.countdown-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 200;
+  justify-content: center; align-items: center;
+}
+.countdown-overlay.active { display: flex; }
+
+.countdown-number {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 8rem; font-weight: 900;
+  color: var(--neon-red);
+  text-shadow: 0 0 40px rgba(255,51,102,0.8);
+  animation: countdown-pop 0.8s ease;
+}
+
+@keyframes countdown-pop {
+  0% { transform: scale(2); opacity: 0; }
+  50% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.8; }
+}
+
+.countdown-rip {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 3rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink), var(--neon-gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: rip-flash 0.5s ease-in-out 3;
+}
+
+@keyframes rip-flash {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+/* ========== BATTLE SCREEN ========== */
+#battle-screen {
+  padding: 10px;
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+.battle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 10px;
+}
+
+.battle-round {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  color: var(--neon-gold);
+  text-align: center;
+}
+
+.battle-player-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  min-width: 180px;
+}
+
+.battle-player-info.p1 { border-color: rgba(0,212,255,0.3); }
+.battle-player-info.p2 { border-color: rgba(255,0,170,0.3); flex-direction: row-reverse; text-align: right; }
+
+.bpi-avatar { font-size: 1.5rem; }
+.bpi-details { flex: 1; }
+.bpi-name { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; font-weight: 700; }
+.bpi-bey { font-size: 0.7rem; color: var(--text-dim); }
+.bpi-score { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; font-weight: 900; color: var(--neon-gold); }
+
+.spin-bar-container { margin-top: 4px; }
+.spin-bar-label { font-size: 0.6rem; color: var(--text-dim); }
+.spin-bar-track { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.spin-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.spin-bar-fill.p1-fill { background: var(--neon-blue); }
+.spin-bar-fill.p2-fill { background: var(--neon-pink); }
+
+/* Canvas container */
+.arena-container {
+  position: relative;
+  margin: 10px auto;
+}
+
+#battleCanvas {
+  display: block;
+  margin: 0 auto;
+  border-radius: 50%;
+}
+
+/* Launch buttons */
+.launch-container {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 15px;
+}
+
+.btn-launch {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem; font-weight: 700;
+  padding: 12px 30px;
+  border: 2px solid;
+  background: transparent;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.3s;
+}
+.btn-launch.p1-launch { border-color: var(--neon-blue); color: var(--neon-blue); }
+.btn-launch.p1-launch:hover { background: rgba(0,212,255,0.15); box-shadow: 0 0 20px rgba(0,212,255,0.3); }
+.btn-launch.p2-launch { border-color: var(--neon-pink); color: var(--neon-pink); }
+.btn-launch.p2-launch:hover { background: rgba(255,0,170,0.15); box-shadow: 0 0 20px rgba(255,0,170,0.3); }
+
+/* Battle announcement banner */
+.battle-banner {
+  display: none;
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 150;
+  text-align: center;
+  padding: 30px 50px;
+  background: rgba(0,0,0,0.9);
+  border: 2px solid var(--neon-gold);
+  border-radius: 12px;
+  box-shadow: 0 0 40px rgba(255,215,0,0.3);
+}
+.battle-banner.active { display: block; animation: fadeIn 0.5s ease; }
+
+.banner-finish-type {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem; font-weight: 900;
+  color: var(--neon-gold);
+  margin-bottom: 10px;
+}
+
+.banner-winner {
+  font-size: 1.1rem;
+  color: var(--text);
+  margin-bottom: 15px;
+}
+
+.banner-points {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: var(--neon-green);
+  margin-bottom: 20px;
+}
+
+.btn-next-round {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  padding: 10px 30px;
+  border: 2px solid var(--neon-blue);
+  background: transparent;
+  color: var(--neon-blue);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-next-round:hover { background: rgba(0,212,255,0.15); }
+
+/* Battle timer */
+.battle-timer {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-align: center;
+  margin-top: 5px;
+}
+
+/* ========== RESULTS SCREEN ========== */
+#results-screen {
+  justify-content: center;
+  text-align: center;
+  background: radial-gradient(ellipse at center, #1a1040 0%, var(--bg) 70%);
+  position: relative;
+  overflow: hidden;
+}
+
+.results-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  color: var(--text-dim);
+  margin-bottom: 10px;
+}
+
+.results-winner {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--neon-gold), #ffaa00, var(--neon-gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 5px;
+}
+
+.results-winner-avatar { font-size: 4rem; margin: 10px 0; }
+
+.results-scores {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin: 20px 0;
+}
+
+.results-score-box {
+  padding: 15px 25px;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  min-width: 120px;
+}
+
+.results-score-name { font-size: 0.85rem; color: var(--text-dim); margin-bottom: 5px; }
+.results-score-val { font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 900; color: var(--neon-gold); }
+
+/* Round breakdown */
+.round-breakdown {
+  max-width: 500px; width: 100%;
+  margin: 20px auto;
+}
+
+.round-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 0.85rem;
+}
+
+.round-label { color: var(--text-dim); }
+.round-type { color: var(--neon-blue); font-weight: 600; }
+.round-winner-name { color: var(--neon-gold); }
+.round-pts { color: var(--neon-green); font-weight: 700; }
+
+.results-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 25px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-rematch {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  padding: 12px 30px;
+  border: 2px solid var(--neon-blue);
+  background: transparent;
+  color: var(--neon-blue);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-rematch:hover { background: rgba(0,212,255,0.15); }
+
+.btn-new-game {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  padding: 12px 30px;
+  border: 2px solid var(--neon-pink);
+  background: transparent;
+  color: var(--neon-pink);
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.btn-new-game:hover { background: rgba(255,0,170,0.15); }
+
+/* Confetti */
+.confetti-container {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 50;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px; height: 10px;
+  top: -10px;
+  animation: confetti-fall linear forwards;
+}
+
+@keyframes confetti-fall {
+  to { top: 110vh; transform: rotate(720deg); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .card-grid.avatars { grid-template-columns: repeat(5, 1fr); }
+  .card-grid.types { grid-template-columns: 1fr; }
+  .card-grid.blades { grid-template-columns: repeat(2, 1fr); }
+  .card-grid.pictures { grid-template-columns: repeat(3, 1fr); }
+  .card-grid.launchers { grid-template-columns: 1fr; }
+  .card-grid.stadiums { grid-template-columns: 1fr; }
+  .summary-container { grid-template-columns: 1fr; }
+  .summary-vs { padding: 10px 0; }
+  .battle-header { flex-direction: column; gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TITLE SCREEN ===== -->
+<div id="title-screen" class="screen active">
+  <img src="beyblade-logo.png" alt="Beyblade X Tsunami" class="title-logo">
+  <h1 class="title-main">BEYBLADE X TSUNAMI<br>XTREME BATTLE ARENA</h1>
+  <p class="title-sub">CHOOSE YOUR BLADE. UNLEASH YOUR POWER.</p>
+  <button class="btn-start" onclick="startGame()">START BATTLE</button>
+  <button class="btn-how-to" onclick="showHowTo()">HOW TO PLAY</button>
+</div>
+
+<!-- How To Play Modal -->
+<div id="how-to-modal" class="modal-overlay">
+  <div class="modal-content">
+    <h2>HOW TO PLAY</h2>
+    <h3>Setup</h3>
+    <p>Each player customizes their Beyblade by choosing a Blade, Ratchet, and Bit. Each part affects your stats: Attack, Stamina, and Defense.</p>
+    <h3>Type Advantages</h3>
+    <p>Attack beats Stamina, Stamina outlasts Defense, Defense tanks Attack. Balance is neutral against all.</p>
+    <h3>Battle</h3>
+    <p>Beyblades battle in a stadium for 3 rounds. The X-Celerator rail on the edge gives Attack types a speed boost!</p>
+    <h3>Scoring</h3>
+    <div class="score-item"><span class="score-label">Draw (both stop)</span><span class="score-pts">1 pt each</span></div>
+    <div class="score-item"><span class="score-label">Survivor Finish</span><span class="score-pts">2 pts</span></div>
+    <div class="score-item"><span class="score-label">Knockout (KO)</span><span class="score-pts">3 pts</span></div>
+    <div class="score-item"><span class="score-label">Burst Finish</span><span class="score-pts">4 pts</span></div>
+    <p style="margin-top: 12px;">Most points after 3 rounds wins!</p>
+    <button class="btn-close-modal" onclick="closeHowTo()">GOT IT</button>
+  </div>
+</div>
+
+<!-- ===== PLAYER SETUP ===== -->
+<div id="player-setup" class="screen">
+  <div class="setup-screen">
+    <div id="setup-player-header" class="player-header p1">PLAYER 1 — GET READY!</div>
+    <div id="setup-step"></div>
+    <button id="setup-next-btn" class="btn-next" onclick="nextSetupStep()">NEXT →</button>
+  </div>
+</div>
+
+<!-- ===== STADIUM SELECT ===== -->
+<div id="stadium-select" class="screen">
+  <div class="setup-screen">
+    <div class="player-header" style="color: var(--neon-gold); border-color: var(--neon-gold); box-shadow: 0 0 15px rgba(255,215,0,0.2);">CHOOSE YOUR STADIUM</div>
+    <div id="stadium-step"></div>
+    <button id="stadium-next-btn" class="btn-next" onclick="selectStadium()">CONFIRM STADIUM →</button>
+  </div>
+</div>
+
+<!-- ===== PRE-BATTLE SUMMARY ===== -->
+<div id="pre-battle" class="screen">
+  <h2 style="font-size: clamp(1.2rem, 3vw, 1.8rem); color: var(--neon-gold); margin-bottom: 20px;">⚔️ BATTLE READY ⚔️</h2>
+  <div id="summary-content" class="summary-container"></div>
+  <div id="summary-stadium-display" class="summary-stadium"></div>
+  <button class="btn-countdown" onclick="startCountdown()">3... 2... 1... LET IT RIP!</button>
+</div>
+
+<!-- Countdown overlay -->
+<div id="countdown-overlay" class="countdown-overlay">
+  <div id="countdown-display"></div>
+</div>
+
+<!-- ===== BATTLE SCREEN ===== -->
+<div id="battle-screen" class="screen">
+  <div class="battle-header">
+    <div id="battle-p1-info" class="battle-player-info p1"></div>
+    <div>
+      <div id="battle-round" class="battle-round">ROUND 1 OF 3</div>
+      <div id="battle-timer" class="battle-timer">60s</div>
+    </div>
+    <div id="battle-p2-info" class="battle-player-info p2"></div>
+  </div>
+  <div class="arena-container">
+    <canvas id="battleCanvas"></canvas>
+  </div>
+  <div id="launch-container" class="launch-container">
+    <button id="btn-launch" class="btn-launch p1-launch" onclick="triggerLaunch()" style="border-color: var(--neon-red); color: var(--neon-red); font-size: 1.2rem; padding: 16px 50px; animation: glow-pulse-red 2s ease-in-out infinite;">🔥 LAUNCH! 🔥</button>
+  </div>
+</div>
+
+<!-- Battle banner -->
+<div id="battle-banner" class="battle-banner">
+  <div id="banner-finish-type" class="banner-finish-type"></div>
+  <div id="banner-winner" class="banner-winner"></div>
+  <div id="banner-points" class="banner-points"></div>
+  <button class="btn-next-round" onclick="nextRound()">NEXT ROUND →</button>
+</div>
+
+<!-- ===== RESULTS SCREEN ===== -->
+<div id="results-screen" class="screen">
+  <div id="confetti-container" class="confetti-container"></div>
+  <div class="results-title">THE WINNER IS...</div>
+  <div id="results-winner-name" class="results-winner"></div>
+  <div id="results-winner-avatar" class="results-winner-avatar"></div>
+  <div class="results-scores">
+    <div class="results-score-box">
+      <div id="results-p1-name" class="results-score-name"></div>
+      <div id="results-p1-score" class="results-score-val"></div>
+    </div>
+    <div class="results-score-box">
+      <div id="results-p2-name" class="results-score-name"></div>
+      <div id="results-p2-score" class="results-score-val"></div>
+    </div>
+  </div>
+  <div id="round-breakdown" class="round-breakdown"></div>
+  <div class="results-buttons">
+    <button class="btn-rematch" onclick="rematch()">⚔️ REMATCH</button>
+    <button class="btn-new-game" onclick="newGame()">🔄 NEW GAME</button>
+  </div>
+</div>
+
+<script>
+// ==================== GAME DATA ====================
+const BLADES = [
+  { name: "Dran Sword", type: "Attack", icon: "⚔️", color: "#E63946", atk: 9, sta: 4, def: 3 },
+  { name: "Hells Scythe", type: "Balance", icon: "🔮", color: "#6A0DAD", atk: 6, sta: 6, def: 6 },
+  { name: "Wizard Arrow", type: "Stamina", icon: "🏹", color: "#2196F3", atk: 3, sta: 9, def: 5 },
+  { name: "Knight Shield", type: "Defense", icon: "🛡️", color: "#4CAF50", atk: 4, sta: 5, def: 9 },
+  { name: "Shark Edge", type: "Attack", icon: "🦈", color: "#00BCD4", atk: 8, sta: 5, def: 4 },
+  { name: "Phoenix Wing", type: "Attack", icon: "🔥", color: "#FF5722", atk: 9, sta: 3, def: 5 },
+  { name: "Leon Claw", type: "Attack", icon: "🦁", color: "#FFC107", atk: 8, sta: 4, def: 5 },
+  { name: "Viper Tail", type: "Stamina", icon: "🐍", color: "#9C27B0", atk: 5, sta: 8, def: 4 },
+  { name: "Rhino Horn", type: "Defense", icon: "🦏", color: "#795548", atk: 5, sta: 4, def: 8 },
+  { name: "Unicorn Sting", type: "Stamina", icon: "🦄", color: "#E91E63", atk: 4, sta: 9, def: 4 },
+  { name: "Wyvern Gale", type: "Balance", icon: "🐉", color: "#009688", atk: 7, sta: 6, def: 5 },
+  { name: "Sphinx Cowl", type: "Defense", icon: "🏛️", color: "#FFD700", atk: 3, sta: 6, def: 9 },
+  { name: "Dran Dagger", type: "Attack", icon: "🗡️", color: "#F44336", atk: 9, sta: 3, def: 4 },
+  { name: "Hells Chain", type: "Balance", icon: "⛓️", color: "#311B92", atk: 7, sta: 5, def: 6 },
+  { name: "Cobalt Drake", type: "Balance", icon: "🐲", color: "#1565C0", atk: 6, sta: 7, def: 5 },
+  { name: "Roar Tyranno", type: "Attack", icon: "🦖", color: "#BF360C", atk: 9, sta: 3, def: 5 },
+  { name: "Weiss Tiger", type: "Defense", icon: "🐯", color: "#B0BEC5", atk: 5, sta: 5, def: 8 },
+  { name: "Silver Wolf", type: "Stamina", icon: "🐺", color: "#78909C", atk: 5, sta: 8, def: 5 },
+  { name: "Impact Drake", type: "Attack", icon: "💥", color: "#D32F2F", atk: 10, sta: 2, def: 4 },
+  { name: "Mammoth Tusk", type: "Defense", icon: "🦣", color: "#5D4037", atk: 4, sta: 6, def: 9 }
+];
+
+const RATCHETS = [
+  { name: "3-60", height: "Low", prongs: 3, stBonus: 2, defBonus: 0 },
+  { name: "4-60", height: "Low", prongs: 4, stBonus: 1, defBonus: 1 },
+  { name: "5-60", height: "Low", prongs: 5, stBonus: 0, defBonus: 2 },
+  { name: "3-80", height: "High", prongs: 3, stBonus: 1, defBonus: 2 },
+  { name: "4-80", height: "High", prongs: 4, stBonus: 1, defBonus: 1 },
+  { name: "5-80", height: "High", prongs: 5, stBonus: 0, defBonus: 3 },
+  { name: "9-60", height: "Low", prongs: 9, stBonus: 3, defBonus: 0 },
+  { name: "9-80", height: "High", prongs: 9, stBonus: 2, defBonus: 1 }
+];
+
+const BITS = [
+  { name: "Flat (F)", type: "Attack", atkBonus: 3, stBonus: -1, burstResist: 2, desc: "Aggressive movement" },
+  { name: "Ball (B)", type: "Stamina", atkBonus: -1, stBonus: 3, burstResist: 1, desc: "Long spin time" },
+  { name: "Needle (N)", type: "Defense", atkBonus: 0, stBonus: 1, burstResist: 3, desc: "Stable center" },
+  { name: "Taper (T)", type: "Balance", atkBonus: 1, stBonus: 1, burstResist: 2, desc: "Balanced performance" },
+  { name: "Gear Flat (GF)", type: "Attack", atkBonus: 4, stBonus: -2, burstResist: 1, desc: "Xtreme Dash power!" },
+  { name: "Hexa (H)", type: "Balance", atkBonus: 1, stBonus: 2, burstResist: 2, desc: "All-rounder" },
+  { name: "Low Flat (LF)", type: "Attack", atkBonus: 3, stBonus: 0, burstResist: 1, desc: "Low aggressive" },
+  { name: "Rush (R)", type: "Attack", atkBonus: 2, stBonus: 0, burstResist: 2, desc: "Fast strikes" },
+  { name: "Point (P)", type: "Defense", atkBonus: 0, stBonus: 2, burstResist: 3, desc: "Sharp defense" },
+  { name: "Orb (O)", type: "Stamina", atkBonus: 0, stBonus: 3, burstResist: 1, desc: "Ultra stamina" }
+];
+
+const AVATARS = ["🧑‍🚀", "👨‍🎤", "🥷", "🧙", "👾", "🤖", "🦸", "🧛", "🐲", "⚡"];
+
+const PICTURES = [
+  { emoji: "🐉", name: "Dragon", bg: "#E63946" },
+  { emoji: "🔥", name: "Phoenix", bg: "#FF5722" },
+  { emoji: "🐺", name: "Wolf", bg: "#2196F3" },
+  { emoji: "🐯", name: "Tiger", bg: "#FF9800" },
+  { emoji: "🦅", name: "Eagle", bg: "#795548" },
+  { emoji: "🦈", name: "Shark", bg: "#009688" },
+  { emoji: "🦁", name: "Lion", bg: "#FFC107" },
+  { emoji: "🐍", name: "Snake", bg: "#4CAF50" },
+  { emoji: "🦂", name: "Scorpion", bg: "#B71C1C" },
+  { emoji: "⚡", name: "Lightning", bg: "#FFEB3B" },
+  { emoji: "💀", name: "Skull", bg: "#212121" },
+  { emoji: "⭐", name: "Star", bg: "#E91E63" }
+];
+
+const LAUNCHERS = [
+  { name: "Ripcord Launcher", style: "Classic", power: 7, desc: "The classic ripcord pull!" },
+  { name: "String Launcher", style: "Pro", power: 9, desc: "Double the pull power!" },
+  { name: "Winder Launcher", style: "Quick", power: 6, desc: "Quick & easy launch" },
+  { name: "Power Launcher", style: "Heavy", power: 10, desc: "MAXIMUM POWER!" }
+];
+
+const STADIUMS = [
+  { name: "Xtreme Stadium", desc: "Standard X-Celerator Rail arena", icon: "🏟️", colors: ["#00d4ff", "#0066aa"] },
+  { name: "Fire Arena", desc: "Blazing hot battles!", icon: "🔥", colors: ["#ff3300", "#ff8800"] },
+  { name: "Ice Ring", desc: "Frozen battlefield", icon: "❄️", colors: ["#88ddff", "#4488ff"] },
+  { name: "Shadow Pit", desc: "Dark and dangerous", icon: "🌑", colors: ["#440066", "#220033"] },
+  { name: "Thunder Dome", desc: "Electrifying clashes!", icon: "⚡", colors: ["#ffdd00", "#ff8800"] },
+  { name: "Galaxy Arena", desc: "Battle among the stars", icon: "🌌", colors: ["#6600cc", "#0044ff"] },
+  { name: "Water Dome", desc: "Tidal waves crash every hit!", icon: "🌊", colors: ["#0088cc", "#00ccff"] },
+  { name: "Light Dome", desc: "Blinding radiance powers up!", icon: "💡", colors: ["#ffee88", "#ffffff"] },
+  { name: "Number Dome", desc: "Digits rain from the sky!", icon: "🔢", colors: ["#00ff66", "#00cc44"] },
+  { name: "Hypnotise Dome", desc: "Mind-bending spiral madness!", icon: "🌀", colors: ["#cc00ff", "#ff00cc"] }
+];
+
+const TYPES = [
+  { name: "ATTACK", icon: "⚔️", desc: "Aggressive! Aims for Knockouts and Bursts. Weak stamina.", color: "#ff3366" },
+  { name: "DEFENSE", icon: "🛡️", desc: "Tanks hits! Absorbs spin from opponents. Tall and stable.", color: "#00ff88" },
+  { name: "STAMINA", icon: "🌀", desc: "Outlasts everyone! Spins the longest. Weak to Attack.", color: "#00d4ff" },
+  { name: "BALANCE", icon: "⚖️", desc: "A mix of all types. Adaptable but no single strength.", color: "#ffd700" }
+];
+
+// ==================== GAME STATE ====================
+let players = [
+  { name: "", avatar: "", type: "", blade: null, ratchet: null, bit: null, picture: null, beyName: "", launcher: null, score: 0 },
+  { name: "", avatar: "", type: "", blade: null, ratchet: null, bit: null, picture: null, beyName: "", launcher: null, score: 0 }
+];
+let currentPlayer = 0; // 0 or 1
+let currentStep = 0;
+let selectedStadium = null;
+let currentRound = 1;
+let roundResults = [];
+
+const SETUP_STEPS = ['name', 'type', 'blade', 'ratchet-bit', 'picture', 'launcher'];
+
+// Default ratchet/bit by type
+const DEFAULT_PARTS = {
+  'ATTACK':  { ratchet: RATCHETS[0], bit: BITS[0] },  // 3-60, Flat
+  'DEFENSE': { ratchet: RATCHETS[5], bit: BITS[2] },   // 5-80, Needle
+  'STAMINA': { ratchet: RATCHETS[6], bit: BITS[1] },   // 9-60, Ball
+  'BALANCE': { ratchet: RATCHETS[4], bit: BITS[3] }    // 4-80, Taper
+};
+
+// Temp selections for current step
+let tempSelection = null;
+
+// ==================== SCREEN MANAGEMENT ====================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ==================== TITLE SCREEN ====================
+function startGame() {
+  players = [
+    { name: "", avatar: "", type: "", blade: null, ratchet: null, bit: null, picture: null, beyName: "", launcher: null, score: 0 },
+    { name: "", avatar: "", type: "", blade: null, ratchet: null, bit: null, picture: null, beyName: "", launcher: null, score: 0 }
+  ];
+  currentPlayer = 0;
+  currentStep = 0;
+  currentRound = 1;
+  roundResults = [];
+  showScreen('player-setup');
+  renderSetupStep();
+}
+
+function showHowTo() { document.getElementById('how-to-modal').classList.add('active'); }
+function closeHowTo() { document.getElementById('how-to-modal').classList.remove('active'); }
+
+// ==================== SETUP STEPS ====================
+function renderSetupStep() {
+  const header = document.getElementById('setup-player-header');
+  header.textContent = `PLAYER ${currentPlayer + 1} — GET READY!`;
+  header.className = `player-header p${currentPlayer + 1}`;
+
+  const container = document.getElementById('setup-step');
+  const btn = document.getElementById('setup-next-btn');
+  tempSelection = null;
+  btn.classList.remove('enabled');
+
+  const step = SETUP_STEPS[currentStep];
+
+  switch (step) {
+    case 'name':
+      container.innerHTML = `
+        <div class="step-title">ENTER YOUR BLADER NAME</div>
+        <div class="text-input-wrap">
+          <input type="text" class="text-input" id="name-input" placeholder="Enter your Blader name..." maxlength="20"
+            value="${players[currentPlayer].name}" oninput="checkName()">
+        </div>
+      `;
+      if (players[currentPlayer].name) {
+        tempSelection = true;
+        btn.classList.add('enabled');
+      }
+      break;
+
+    case 'type':
+      container.innerHTML = `
+        <div class="step-title">CHOOSE YOUR BEYBLADE TYPE</div>
+        <div class="card-grid types" id="type-grid"></div>
+      `;
+      const tg = document.getElementById('type-grid');
+      TYPES.forEach((t, i) => {
+        const card = document.createElement('div');
+        card.className = 'card type-card' + (players[currentPlayer].type === t.name ? ' selected' : '');
+        card.style.borderColor = players[currentPlayer].type === t.name ? 'var(--neon-gold)' : t.color + '44';
+        card.innerHTML = `
+          <span class="card-icon">${t.icon}</span>
+          <div class="card-name" style="color:${t.color}">${t.name}</div>
+          <div class="card-desc">${t.desc}</div>
+        `;
+        card.onclick = () => selectType(t.name, card);
+        tg.appendChild(card);
+      });
+      if (players[currentPlayer].type) { tempSelection = true; btn.classList.add('enabled'); }
+      break;
+
+    case 'blade': {
+      // Only show blades matching the chosen type
+      const chosenType = players[currentPlayer].type;
+      const filteredBlades = BLADES.filter(b => b.type === chosenType.charAt(0).toUpperCase() + chosenType.slice(1).toLowerCase());
+      container.innerHTML = `
+        <div class="step-title">CHOOSE YOUR ${chosenType} BLADE</div>
+        <div class="card-grid blades" id="blade-grid"></div>
+      `;
+      const bg = document.getElementById('blade-grid');
+      filteredBlades.forEach((b, i) => {
+        const card = document.createElement('div');
+        const sel = players[currentPlayer].blade && players[currentPlayer].blade.name === b.name;
+        card.className = 'card blade-card' + (sel ? ' selected' : '');
+        card.style.borderTopColor = b.color;
+        card.innerHTML = `
+          <span class="card-icon">${b.icon}</span>
+          <div class="card-name">${b.name}</div>
+          <div class="card-stat"><span>ATK</span><span>${b.atk}</span></div>
+          <div class="card-stat"><span>STA</span><span>${b.sta}</span></div>
+          <div class="card-stat"><span>DEF</span><span>${b.def}</span></div>
+        `;
+        card.onclick = () => selectCard(b, card, 'blade');
+        bg.appendChild(card);
+      });
+      if (players[currentPlayer].blade) { tempSelection = true; btn.classList.add('enabled'); }
+      break;
+    }
+
+    case 'ratchet-bit': {
+      // Set defaults if not already chosen
+      const pType = players[currentPlayer].type;
+      const defaults = DEFAULT_PARTS[pType] || DEFAULT_PARTS['BALANCE'];
+      if (!players[currentPlayer].ratchet) players[currentPlayer].ratchet = defaults.ratchet;
+      if (!players[currentPlayer].bit) players[currentPlayer].bit = defaults.bit;
+
+      const curRatchet = players[currentPlayer].ratchet;
+      const curBit = players[currentPlayer].bit;
+
+      container.innerHTML = `
+        <div class="step-title">RATCHET & BIT</div>
+        <div style="text-align:center; margin-bottom: 15px;">
+          <div style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 10px;">Defaults selected for ${pType} type. Change below or confirm.</div>
+          <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+            <div style="background: var(--card-bg); border: 2px solid var(--neon-gold); border-radius: 10px; padding: 12px 20px; text-align: center; min-width: 140px;">
+              <div class="card-name" style="color: var(--neon-gold); margin-bottom: 4px;">RATCHET</div>
+              <div style="font-size: 1.1rem; font-weight: 700;" id="cur-ratchet-name">${curRatchet.name}</div>
+              <div style="font-size: 0.8rem; color: var(--text-dim);">${curRatchet.height} • ${curRatchet.prongs} prongs</div>
+              <div class="card-stat"><span>STA+</span><span>${curRatchet.stBonus}</span></div>
+              <div class="card-stat"><span>DEF+</span><span>${curRatchet.defBonus}</span></div>
+            </div>
+            <div style="background: var(--card-bg); border: 2px solid var(--neon-gold); border-radius: 10px; padding: 12px 20px; text-align: center; min-width: 140px;">
+              <div class="card-name" style="color: var(--neon-gold); margin-bottom: 4px;">BIT</div>
+              <div style="font-size: 1.1rem; font-weight: 700;" id="cur-bit-name">${curBit.name}</div>
+              <div style="font-size: 0.8rem; color: var(--text-dim);">${curBit.desc}</div>
+              <div class="card-stat"><span>ATK+</span><span>${curBit.atkBonus > 0 ? '+' : ''}${curBit.atkBonus}</span></div>
+              <div class="card-stat"><span>STA+</span><span>${curBit.stBonus > 0 ? '+' : ''}${curBit.stBonus}</span></div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-bottom: 15px;">
+          <button class="btn-how-to" onclick="toggleCustomizeParts()" id="customize-btn" style="border-color: var(--neon-blue); color: var(--neon-blue);">CUSTOMIZE ▼</button>
+        </div>
+        <div id="customize-panel" style="display: none;">
+          <div class="step-title" style="font-size: 0.85rem;">CHANGE RATCHET</div>
+          <div class="card-grid ratchets" id="ratchet-grid"></div>
+          <div class="step-title" style="font-size: 0.85rem;">CHANGE BIT</div>
+          <div class="card-grid bits" id="bit-grid"></div>
+        </div>
+      `;
+
+      // Populate ratchet cards
+      const rg = document.getElementById('ratchet-grid');
+      RATCHETS.forEach((r, i) => {
+        const card = document.createElement('div');
+        const sel = curRatchet.name === r.name;
+        card.className = 'card' + (sel ? ' selected' : '');
+        card.innerHTML = `
+          <div class="card-name">${r.name}</div>
+          <div class="card-desc">${r.height} • ${r.prongs} prongs</div>
+          <div class="card-stat"><span>STA+</span><span>${r.stBonus}</span></div>
+          <div class="card-stat"><span>DEF+</span><span>${r.defBonus}</span></div>
+        `;
+        card.onclick = () => { selectCard(r, card, 'ratchet'); refreshPartsDisplay(); };
+        rg.appendChild(card);
+      });
+
+      // Populate bit cards
+      const bitg = document.getElementById('bit-grid');
+      BITS.forEach((b, i) => {
+        const card = document.createElement('div');
+        const sel = curBit.name === b.name;
+        card.className = 'card' + (sel ? ' selected' : '');
+        card.innerHTML = `
+          <span class="card-icon" style="font-size:1.5rem">${b.type === 'Attack' ? '⚔️' : b.type === 'Defense' ? '🛡️' : b.type === 'Stamina' ? '🌀' : '⚖️'}</span>
+          <div class="card-name">${b.name}</div>
+          <div class="card-desc">${b.desc}</div>
+          <div class="card-stat"><span>ATK+</span><span>${b.atkBonus > 0 ? '+' : ''}${b.atkBonus}</span></div>
+          <div class="card-stat"><span>STA+</span><span>${b.stBonus > 0 ? '+' : ''}${b.stBonus}</span></div>
+        `;
+        card.onclick = () => { selectCard(b, card, 'bit'); refreshPartsDisplay(); };
+        bitg.appendChild(card);
+      });
+
+      // Already has defaults so always enabled
+      tempSelection = true;
+      btn.classList.add('enabled');
+      break;
+    }
+
+    case 'picture':
+      container.innerHTML = `
+        <div class="step-title">CHOOSE YOUR BLADE PICTURE</div>
+        <div class="card-grid pictures" id="picture-grid"></div>
+      `;
+      const pg = document.getElementById('picture-grid');
+      PICTURES.forEach((p, i) => {
+        const card = document.createElement('div');
+        const sel = players[currentPlayer].picture && players[currentPlayer].picture.name === p.name;
+        card.className = 'card picture' + (sel ? ' selected' : '');
+        card.style.background = p.bg + '33';
+        card.innerHTML = `<span class="card-icon">${p.emoji}</span><div class="card-name">${p.name}</div>`;
+        card.onclick = () => selectCard(p, card, 'picture');
+        pg.appendChild(card);
+      });
+      if (players[currentPlayer].picture) { tempSelection = true; btn.classList.add('enabled'); }
+      break;
+
+    case 'launcher':
+      container.innerHTML = `
+        <div class="step-title">CHOOSE YOUR LAUNCHER</div>
+        <div class="card-grid launchers" id="launcher-grid"></div>
+      `;
+      const lg = document.getElementById('launcher-grid');
+      LAUNCHERS.forEach((l, i) => {
+        const card = document.createElement('div');
+        const sel = players[currentPlayer].launcher && players[currentPlayer].launcher.name === l.name;
+        card.className = 'card' + (sel ? ' selected' : '');
+        const powerBar = '█'.repeat(l.power) + '░'.repeat(10 - l.power);
+        card.innerHTML = `
+          <div class="card-name">${l.name}</div>
+          <div class="card-desc">${l.style} Style</div>
+          <div class="card-desc">${l.desc}</div>
+          <div class="card-stat"><span>Power</span><span style="font-family:monospace;font-size:0.65rem">${powerBar}</span></div>
+        `;
+        card.onclick = () => selectCard(l, card, 'launcher');
+        lg.appendChild(card);
+      });
+      if (players[currentPlayer].launcher) { tempSelection = true; btn.classList.add('enabled'); }
+      break;
+  }
+}
+
+function checkName() {
+  const nameVal = document.getElementById('name-input').value.trim();
+  players[currentPlayer].name = nameVal;
+  const btn = document.getElementById('setup-next-btn');
+  if (nameVal) {
+    tempSelection = true;
+    btn.classList.add('enabled');
+  } else {
+    tempSelection = null;
+    btn.classList.remove('enabled');
+  }
+}
+
+function toggleCustomizeParts() {
+  const panel = document.getElementById('customize-panel');
+  const btnEl = document.getElementById('customize-btn');
+  if (panel.style.display === 'none') {
+    panel.style.display = 'block';
+    btnEl.textContent = 'CUSTOMIZE ▲';
+  } else {
+    panel.style.display = 'none';
+    btnEl.textContent = 'CUSTOMIZE ▼';
+  }
+}
+
+function refreshPartsDisplay() {
+  const r = players[currentPlayer].ratchet;
+  const b = players[currentPlayer].bit;
+  const rName = document.getElementById('cur-ratchet-name');
+  const bName = document.getElementById('cur-bit-name');
+  if (rName && r) {
+    rName.parentElement.innerHTML = `
+      <div class="card-name" style="color: var(--neon-gold); margin-bottom: 4px;">RATCHET</div>
+      <div style="font-size: 1.1rem; font-weight: 700;" id="cur-ratchet-name">${r.name}</div>
+      <div style="font-size: 0.8rem; color: var(--text-dim);">${r.height} • ${r.prongs} prongs</div>
+      <div class="card-stat"><span>STA+</span><span>${r.stBonus}</span></div>
+      <div class="card-stat"><span>DEF+</span><span>${r.defBonus}</span></div>
+    `;
+  }
+  if (bName && b) {
+    bName.parentElement.innerHTML = `
+      <div class="card-name" style="color: var(--neon-gold); margin-bottom: 4px;">BIT</div>
+      <div style="font-size: 1.1rem; font-weight: 700;" id="cur-bit-name">${b.name}</div>
+      <div style="font-size: 0.8rem; color: var(--text-dim);">${b.desc}</div>
+      <div class="card-stat"><span>ATK+</span><span>${b.atkBonus > 0 ? '+' : ''}${b.atkBonus}</span></div>
+      <div class="card-stat"><span>STA+</span><span>${b.stBonus > 0 ? '+' : ''}${b.stBonus}</span></div>
+    `;
+  }
+}
+
+function selectType(typeName, card) {
+  players[currentPlayer].type = typeName;
+  document.querySelectorAll('#type-grid .card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  tempSelection = true;
+  document.getElementById('setup-next-btn').classList.add('enabled');
+}
+
+function selectCard(item, card, field) {
+  players[currentPlayer][field] = item;
+  card.parentElement.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  tempSelection = true;
+  document.getElementById('setup-next-btn').classList.add('enabled');
+}
+
+function nextSetupStep() {
+  if (!tempSelection) return;
+
+  // Save text inputs and auto-set derived fields
+  const step = SETUP_STEPS[currentStep];
+  if (step === 'name') {
+    players[currentPlayer].name = document.getElementById('name-input').value.trim();
+  } else if (step === 'blade') {
+    // Auto-set avatar to blade icon, beyName to blade name
+    const blade = players[currentPlayer].blade;
+    if (blade) {
+      players[currentPlayer].avatar = blade.icon;
+      players[currentPlayer].beyName = blade.name;
+    }
+  }
+
+  currentStep++;
+
+  if (currentStep >= SETUP_STEPS.length) {
+    // Done with this player
+    if (currentPlayer === 0) {
+      currentPlayer = 1;
+      currentStep = 0;
+      renderSetupStep();
+    } else {
+      // Both players done, go to stadium select
+      showScreen('stadium-select');
+      renderStadiumSelect();
+    }
+  } else {
+    renderSetupStep();
+  }
+}
+
+// ==================== STADIUM SELECT ====================
+function renderStadiumSelect() {
+  const container = document.getElementById('stadium-step');
+  let html = '<div class="card-grid stadiums" id="stadium-grid">';
+  STADIUMS.forEach((s, i) => {
+    html += `
+      <div class="card stadium-card" onclick="pickStadium(${i}, this)"
+        style="background: linear-gradient(135deg, ${s.colors[0]}22, ${s.colors[1]}22); border-color: ${s.colors[0]}44;">
+        <span class="card-icon">${s.icon}</span>
+        <div class="card-name" style="color:${s.colors[0]}">${s.name}</div>
+        <div class="card-desc">${s.desc}</div>
+      </div>
+    `;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function pickStadium(idx, card) {
+  selectedStadium = STADIUMS[idx];
+  document.querySelectorAll('#stadium-grid .card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  document.getElementById('stadium-next-btn').classList.add('enabled');
+}
+
+function selectStadium() {
+  if (!selectedStadium) return;
+  showScreen('pre-battle');
+  renderPreBattle();
+}
+
+// ==================== PRE-BATTLE SUMMARY ====================
+function getPlayerStats(p) {
+  const atk = (p.blade ? p.blade.atk : 0) + (p.bit ? p.bit.atkBonus : 0);
+  const sta = (p.blade ? p.blade.sta : 0) + (p.ratchet ? p.ratchet.stBonus : 0) + (p.bit ? p.bit.stBonus : 0);
+  const def = (p.blade ? p.blade.def : 0) + (p.ratchet ? p.ratchet.defBonus : 0);
+  return { atk: Math.max(0, atk), sta: Math.max(0, sta), def: Math.max(0, def) };
+}
+
+function renderPreBattle() {
+  const sc = document.getElementById('summary-content');
+  let html = '';
+
+  [0, 1].forEach(idx => {
+    const p = players[idx];
+    const stats = getPlayerStats(p);
+    const color = p.blade ? p.blade.color : '#888';
+    const picEmoji = p.picture ? p.picture.emoji : '⭐';
+    const maxStat = 20;
+
+    if (idx === 1) {
+      html += `<div class="summary-vs">VS</div>`;
+    }
+
+    html += `
+      <div class="summary-player p${idx + 1}">
+        <div class="summary-avatar">${p.avatar}</div>
+        <div class="summary-name">${p.name}</div>
+        <div class="summary-bey-name">${p.beyName}</div>
+        <div class="summary-bey-visual" style="border: 4px solid ${color}; box-shadow: 0 0 15px ${color}44; background: radial-gradient(circle, ${color}22, #0a0a1a); border-radius: 50%; margin: 0 auto 12px;">
+          <div class="bey-preview-emoji" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;">${picEmoji}</div>
+        </div>
+        <div class="summary-parts">
+          ${p.blade ? p.blade.name : '?'} • ${p.ratchet ? p.ratchet.name : '?'} • ${p.bit ? p.bit.name : '?'}
+        </div>
+        <div class="summary-launcher">🚀 ${p.launcher ? p.launcher.name : '?'}</div>
+        <div class="stat-bars">
+          <div class="stat-bar-row">
+            <span class="stat-bar-label">ATK</span>
+            <div class="stat-bar-track"><div class="stat-bar-fill atk" style="width:${(stats.atk/maxStat)*100}%"></div></div>
+            <span class="stat-bar-val">${stats.atk}</span>
+          </div>
+          <div class="stat-bar-row">
+            <span class="stat-bar-label">STA</span>
+            <div class="stat-bar-track"><div class="stat-bar-fill sta" style="width:${(stats.sta/maxStat)*100}%"></div></div>
+            <span class="stat-bar-val">${stats.sta}</span>
+          </div>
+          <div class="stat-bar-row">
+            <span class="stat-bar-label">DEF</span>
+            <div class="stat-bar-track"><div class="stat-bar-fill def" style="width:${(stats.def/maxStat)*100}%"></div></div>
+            <span class="stat-bar-val">${stats.def}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  sc.innerHTML = html;
+
+  // Stadium display
+  const sd = document.getElementById('summary-stadium-display');
+  if (selectedStadium) {
+    sd.innerHTML = `
+      <span class="card-icon">${selectedStadium.icon}</span>
+      <div class="card-name">${selectedStadium.name}</div>
+      <div class="card-desc">${selectedStadium.desc}</div>
+    `;
+    sd.style.borderColor = selectedStadium.colors[0] + '66';
+  }
+}
+
+// ==================== COUNTDOWN ====================
+function startCountdown() {
+  const overlay = document.getElementById('countdown-overlay');
+  const display = document.getElementById('countdown-display');
+  overlay.classList.add('active');
+
+  let count = 3;
+  display.innerHTML = `<div class="countdown-number">${count}</div>`;
+
+  const interval = setInterval(() => {
+    count--;
+    if (count > 0) {
+      display.innerHTML = `<div class="countdown-number">${count}</div>`;
+    } else if (count === 0) {
+      display.innerHTML = `<div class="countdown-rip">LET IT RIP!</div>`;
+    } else {
+      clearInterval(interval);
+      overlay.classList.remove('active');
+      startBattle();
+    }
+  }, 800);
+}
+
+// ==================== BATTLE ENGINE (Phase 2) ====================
+let battleState = null;
+let battleAnimFrame = null;
+let battleTimer = 60;
+let battleTimerInterval = null;
+
+function startBattle() {
+  showScreen('battle-screen');
+  setupBattleUI();
+  setupBattleCanvas();
+}
+
+function setupBattleUI() {
+  // Round display
+  document.getElementById('battle-round').textContent = `ROUND ${currentRound} OF 3`;
+  document.getElementById('battle-timer').textContent = '60s';
+
+  // Player info
+  [0, 1].forEach(idx => {
+    const p = players[idx];
+    const el = document.getElementById(`battle-p${idx+1}-info`);
+    el.innerHTML = `
+      <span class="bpi-avatar">${p.avatar}</span>
+      <div class="bpi-details">
+        <div class="bpi-name">${p.name}</div>
+        <div class="bpi-bey">${p.beyName}</div>
+        <div class="spin-bar-container">
+          <div class="spin-bar-label">SPIN</div>
+          <div class="spin-bar-track"><div class="spin-bar-fill p${idx+1}-fill" id="spin-bar-${idx+1}" style="width:100%"></div></div>
+        </div>
+      </div>
+      <span class="bpi-score" id="score-p${idx+1}">${p.score}</span>
+    `;
+  });
+
+  // Show launch button
+  const lc = document.getElementById('launch-container');
+  lc.style.display = 'flex';
+  document.getElementById('btn-launch').disabled = false;
+  document.getElementById('btn-launch').style.opacity = '1';
+}
+
+function triggerLaunch() {
+  // Disable button immediately
+  document.getElementById('btn-launch').disabled = true;
+  document.getElementById('btn-launch').style.opacity = '0.3';
+  // Run countdown then launch
+  runBattleCountdown();
+}
+
+function runBattleCountdown() {
+  const canvas = document.getElementById('battleCanvas');
+  const ctx = canvas.getContext('2d');
+  const { cx, cy, radius } = battleState;
+  const steps = ['3', '2', '1', 'LET IT RIP!'];
+  let stepIdx = 0;
+
+  function drawCountdownText(text) {
+    // Redraw stadium first
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawStadium(ctx, cx, cy, radius, battleState.railWidth);
+
+    // Draw the countdown text on the canvas
+    ctx.save();
+    const isRip = text === 'LET IT RIP!';
+    ctx.font = isRip
+      ? 'bold ' + Math.floor(canvas.width * 0.08) + 'px Orbitron, sans-serif'
+      : 'bold ' + Math.floor(canvas.width * 0.2) + 'px Orbitron, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Glow
+    ctx.shadowColor = isRip ? '#ffd700' : '#ff3366';
+    ctx.shadowBlur = 30;
+
+    // Gradient fill
+    const g = ctx.createLinearGradient(cx - 100, cy, cx + 100, cy);
+    if (isRip) {
+      g.addColorStop(0, '#00d4ff');
+      g.addColorStop(0.5, '#ff00aa');
+      g.addColorStop(1, '#ffd700');
+    } else {
+      g.addColorStop(0, '#ff3366');
+      g.addColorStop(1, '#ff6644');
+    }
+    ctx.fillStyle = g;
+    ctx.fillText(text, cx, cy);
+    ctx.restore();
+  }
+
+  drawCountdownText(steps[0]);
+
+  const interval = setInterval(() => {
+    stepIdx++;
+    if (stepIdx < steps.length) {
+      drawCountdownText(steps[stepIdx]);
+    } else {
+      clearInterval(interval);
+      launchAllBeys();
+    }
+  }, 800);
+}
+
+function setupBattleCanvas() {
+  const canvas = document.getElementById('battleCanvas');
+  const size = Math.min(window.innerWidth - 40, 700);
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext('2d');
+  const cx = size / 2, cy = size / 2, radius = size / 2 - 10;
+  const railWidth = 30;
+
+  // Draw and cache static stadium to offscreen canvas for performance
+  drawStadium(ctx, cx, cy, radius, railWidth);
+  const stadiumCache = document.createElement('canvas');
+  stadiumCache.width = size;
+  stadiumCache.height = size;
+  stadiumCache.getContext('2d').drawImage(canvas, 0, 0);
+
+  // Init battle state
+  const s1 = getPlayerStats(players[0]);
+  const s2 = getPlayerStats(players[1]);
+
+  battleState = {
+    started: false,
+    launched: [false, false],
+    finished: false,
+    cx, cy, radius, railWidth, size, stadiumCache,
+    beys: [
+      {
+        x: cx - radius * 0.4, y: cy + radius * 0.3,
+        vx: 0, vy: 0,
+        spin: 100, maxSpin: 100,
+        angle: 0, angularVel: 0.15,
+        atk: s1.atk, sta: s1.sta, def: s1.def,
+        burstResist: players[0].bit ? players[0].bit.burstResist : 2,
+        type: players[0].type,
+        color: players[0].blade ? players[0].blade.color : '#00d4ff',
+        emoji: players[0].picture ? players[0].picture.emoji : '⭐',
+        launchPower: players[0].launcher ? players[0].launcher.power : 7,
+        radius: 22,
+        burst: false,
+        preBurst: false,
+        preBurstTimer: 0,
+        ko: false,
+        burstParts: [],
+        onRail: false,
+        railAngle: 0,
+        railDir: 1
+      },
+      {
+        x: cx + radius * 0.4, y: cy - radius * 0.3,
+        vx: 0, vy: 0,
+        spin: 100, maxSpin: 100,
+        angle: 0, angularVel: -0.15,
+        atk: s2.atk, sta: s2.sta, def: s2.def,
+        burstResist: players[1].bit ? players[1].bit.burstResist : 2,
+        type: players[1].type,
+        color: players[1].blade ? players[1].blade.color : '#ff00aa',
+        emoji: players[1].picture ? players[1].picture.emoji : '⭐',
+        launchPower: players[1].launcher ? players[1].launcher.power : 7,
+        radius: 22,
+        burst: false,
+        preBurst: false,
+        preBurstTimer: 0,
+        ko: false,
+        burstParts: [],
+        onRail: false,
+        railAngle: 0,
+        railDir: 1
+      }
+    ],
+    particles: [],
+    railGlow: 0,
+    screenShake: 0,
+    slowMo: false,
+    slowMoTimer: 0,
+    rampAngle: Math.PI * 0.75, // position of the ramp on the rail (top-left area)
+    rampSize: 0.4, // angular size of the ramp zone in radians
+    time: 0
+  };
+}
+
+function drawHexagon(ctx, x, y, size, rotation) {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + rotation;
+    const hx = x + Math.cos(a) * size;
+    const hy = y + Math.sin(a) * size;
+    if (i === 0) ctx.moveTo(hx, hy);
+    else ctx.lineTo(hx, hy);
+  }
+  ctx.closePath();
+}
+
+function drawStadium(ctx, cx, cy, radius, railWidth) {
+  const sc = selectedStadium ? selectedStadium.colors : ['#00d4ff', '#0066aa'];
+
+  // Stadium background
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+  grad.addColorStop(0, '#1a1a2e');
+  grad.addColorStop(0.5, '#0d0d1f');
+  grad.addColorStop(0.85, '#0a0a1a');
+  grad.addColorStop(1, sc[1] + '44');
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // === HEXAGON PATTERN from center outward ===
+  const hexSize = radius * 0.065;
+  const hexH = hexSize * Math.sqrt(3);
+  const maxDist = radius - railWidth - hexSize;
+
+  for (let row = -12; row <= 12; row++) {
+    for (let col = -12; col <= 12; col++) {
+      const hx = cx + col * hexSize * 1.5;
+      const hy = cy + row * hexH + (col % 2 !== 0 ? hexH * 0.5 : 0);
+      const dist = Math.sqrt((hx - cx) ** 2 + (hy - cy) ** 2);
+
+      if (dist < maxDist && dist > 20) {
+        // Fade opacity based on distance from center — visible during battle
+        const alpha = 0.08 + (dist / maxDist) * 0.12;
+        drawHexagon(ctx, hx, hy, hexSize * 0.9, 0);
+        ctx.strokeStyle = sc[0] + Math.floor(alpha * 255).toString(16).padStart(2, '0');
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // === CURVY LINES on the rim ===
+  ctx.save();
+  const rimMid = radius - railWidth * 0.5;
+  const waveAmplitude = railWidth * 0.3;
+  const numWaves = 24;
+
+  // Draw multiple interweaving sine waves around the rim
+  for (let w = 0; w < 3; w++) {
+    ctx.beginPath();
+    const phaseOffset = (w / 3) * Math.PI * 2;
+    const waveAlpha = w === 0 ? '44' : w === 1 ? '33' : '22';
+
+    for (let i = 0; i <= 360; i++) {
+      const angle = (i / 180) * Math.PI;
+      const wave = Math.sin(angle * numWaves + phaseOffset) * waveAmplitude;
+      const r = rimMid + wave;
+      const px = cx + Math.cos(angle) * r;
+      const py = cy + Math.sin(angle) * r;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.strokeStyle = sc[0] + waveAlpha;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // X-Celerator Rail zone — outer glow band
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius - railWidth * 0.5, 0, Math.PI * 2);
+  ctx.strokeStyle = sc[0] + '12';
+  ctx.lineWidth = railWidth;
+  ctx.stroke();
+
+  // XTREME DASH LINE — bright dashed ring
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius - railWidth, 0, Math.PI * 2);
+  ctx.setLineDash([12, 8]);
+  ctx.strokeStyle = sc[0] + '88';
+  ctx.lineWidth = 3;
+  ctx.shadowColor = sc[0];
+  ctx.shadowBlur = 10;
+  ctx.stroke();
+  ctx.restore();
+
+  // Inner edge of rail
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius - railWidth - 2, 0, Math.PI * 2);
+  ctx.strokeStyle = sc[0] + '33';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // "X" markers around the rail
+  ctx.save();
+  ctx.font = 'bold 10px Orbitron, sans-serif';
+  ctx.fillStyle = sc[0] + '55';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const xm = cx + Math.cos(a) * (radius - railWidth * 0.5);
+    const ym = cy + Math.sin(a) * (radius - railWidth * 0.5);
+    ctx.save();
+    ctx.translate(xm, ym);
+    ctx.rotate(a + Math.PI / 2);
+    ctx.fillText('X', 0, 0);
+    ctx.restore();
+  }
+  ctx.restore();
+
+  // Stadium outer border
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = sc[0] + '88';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // === XTREME DASH RAMP (semicircle on the rail) ===
+  const rampAngle = Math.PI * 0.75; // matches battleState.rampAngle
+  const rampSize = 0.4;
+  const railR = radius - railWidth * 0.5;
+  const rampBulge = railWidth * 0.7;
+
+  ctx.save();
+  // Draw the semicircle ramp bulging inward
+  ctx.beginPath();
+  const rampStartAngle = rampAngle - rampSize * 0.5;
+  const rampEndAngle = rampAngle + rampSize * 0.5;
+
+  // Outer arc (on the rail)
+  ctx.arc(cx, cy, railR + railWidth * 0.3, rampStartAngle, rampEndAngle);
+  // Inner arc (bulging toward center) — semicircle shape
+  const rampMidX = cx + Math.cos(rampAngle) * (railR - rampBulge);
+  const rampMidY = cy + Math.sin(rampAngle) * (railR - rampBulge);
+  // Curve inward through the bulge point
+  const endX = cx + Math.cos(rampEndAngle) * railR;
+  const endY = cy + Math.sin(rampEndAngle) * railR;
+  const startX = cx + Math.cos(rampStartAngle) * railR;
+  const startY = cy + Math.sin(rampStartAngle) * railR;
+  ctx.quadraticCurveTo(rampMidX, rampMidY, startX, startY);
+  ctx.closePath();
+
+  // Fill ramp
+  const rampGrad = ctx.createRadialGradient(
+    cx + Math.cos(rampAngle) * railR, cy + Math.sin(rampAngle) * railR, 5,
+    cx + Math.cos(rampAngle) * railR, cy + Math.sin(rampAngle) * railR, rampBulge + 20
+  );
+  rampGrad.addColorStop(0, sc[0] + 'aa');
+  rampGrad.addColorStop(0.5, sc[0] + '44');
+  rampGrad.addColorStop(1, sc[0] + '11');
+  ctx.fillStyle = rampGrad;
+  ctx.fill();
+
+  // Ramp border
+  ctx.strokeStyle = sc[0] + 'cc';
+  ctx.lineWidth = 2;
+  ctx.shadowColor = sc[0];
+  ctx.shadowBlur = 12;
+  ctx.stroke();
+
+  // Arrow indicator on ramp pointing inward
+  const arrowX = cx + Math.cos(rampAngle) * (railR - rampBulge * 0.4);
+  const arrowY = cy + Math.sin(rampAngle) * (railR - rampBulge * 0.4);
+  const arrowAngle = rampAngle + Math.PI; // pointing toward center
+  ctx.beginPath();
+  ctx.moveTo(
+    arrowX + Math.cos(arrowAngle) * 10,
+    arrowY + Math.sin(arrowAngle) * 10
+  );
+  ctx.lineTo(
+    arrowX + Math.cos(arrowAngle + 2.5) * 7,
+    arrowY + Math.sin(arrowAngle + 2.5) * 7
+  );
+  ctx.lineTo(
+    arrowX + Math.cos(arrowAngle - 2.5) * 7,
+    arrowY + Math.sin(arrowAngle - 2.5) * 7
+  );
+  ctx.closePath();
+  ctx.fillStyle = sc[0] + 'bb';
+  ctx.shadowBlur = 8;
+  ctx.fill();
+  ctx.restore();
+
+  // === CENTER CIRCLE (no cross) ===
+  // Outer glow ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+  ctx.strokeStyle = sc[0] + '33';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Inner filled circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fill();
+  ctx.strokeStyle = sc[0] + '55';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  ctx.fillStyle = sc[0] + '44';
+  ctx.fill();
+}
+
+function launchAllBeys() {
+  // Hide launch button
+  document.getElementById('launch-container').style.display = 'none';
+
+  // Launch both beyblades simultaneously
+  battleState.beys.forEach((bey, idx) => {
+    battleState.launched[idx] = true;
+
+    const power = bey.launchPower / 10;
+    const baseSpeed = 3 + power * 2;
+
+    if (idx === 0) {
+      bey.vx = baseSpeed * 0.7;
+      bey.vy = -baseSpeed * 0.7;
+    } else {
+      bey.vx = -baseSpeed * 0.7;
+      bey.vy = baseSpeed * 0.7;
+    }
+
+    // Spin based on stamina — higher base for longer battles
+    bey.spin = 120 + bey.sta * 4;
+    bey.maxSpin = bey.spin;
+    bey.angularVel = (idx === 0 ? 0.3 : -0.3) * (1 + power * 0.1);
+  });
+
+  // Start the battle
+  battleState.started = true;
+  battleTimer = 60;
+  battleTimerInterval = setInterval(() => {
+    battleTimer--;
+    document.getElementById('battle-timer').textContent = battleTimer + 's';
+    if (battleTimer <= 0) {
+      clearInterval(battleTimerInterval);
+      if (!battleState.finished) {
+        const b1 = battleState.beys[0], b2 = battleState.beys[1];
+        if (b1.spin > b2.spin) {
+          endRound('SURVIVOR', 0);
+        } else if (b2.spin > b1.spin) {
+          endRound('SURVIVOR', 1);
+        } else {
+          endRound('DRAW', -1);
+        }
+      }
+    }
+  }, 1000);
+  battleLoop();
+}
+
+function battleLoop() {
+  if (battleState.finished) return;
+
+  const { beys, cx, cy, radius, railWidth, size, particles } = battleState;
+  const canvas = document.getElementById('battleCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Determine delta time factor (for slow motion)
+  const dtFactor = battleState.slowMo ? 0.3 : 1;
+  battleState.time += dtFactor;
+
+  if (battleState.slowMo) {
+    battleState.slowMoTimer--;
+    if (battleState.slowMoTimer <= 0) battleState.slowMo = false;
+  }
+
+  // Update physics for each bey
+  for (let idx = 0; idx < beys.length; idx++) {
+    const bey = beys[idx];
+    if (bey.burst || bey.ko) continue;
+
+    // Spin decay — based on stamina (higher sta = slower decay)
+    const spinDecay = 0.012 / (1 + bey.sta * 0.12);
+    bey.spin -= spinDecay * dtFactor;
+
+    // Movement based on type
+    const moveSpeed = (0.5 + bey.atk * 0.15) * (bey.spin / bey.maxSpin);
+    const time = battleState.time * 0.02;
+
+    switch (bey.type) {
+      case 'ATTACK':
+        // Aggressive wide circles
+        bey.vx += Math.cos(time * 3 + idx * Math.PI) * moveSpeed * 0.15 * dtFactor;
+        bey.vy += Math.sin(time * 2.5 + idx * Math.PI) * moveSpeed * 0.15 * dtFactor;
+        // Extra randomness
+        bey.vx += (Math.random() - 0.5) * 0.3 * dtFactor;
+        bey.vy += (Math.random() - 0.5) * 0.3 * dtFactor;
+        break;
+      case 'DEFENSE':
+        // Hold center stage like Stamina, with slight drift
+        const dxDef = cx - bey.x, dyDef = cy - bey.y;
+        bey.vx += dxDef * 0.005 * dtFactor;
+        bey.vy += dyDef * 0.005 * dtFactor;
+        bey.vx += Math.cos(time * 1.5) * 0.06 * dtFactor;
+        bey.vy += Math.sin(time * 1.5) * 0.06 * dtFactor;
+        break;
+      case 'STAMINA':
+        // Mostly center, very small wobble
+        const dxSta = cx - bey.x, dySta = cy - bey.y;
+        bey.vx += dxSta * 0.005 * dtFactor;
+        bey.vy += dySta * 0.005 * dtFactor;
+        bey.vx += Math.cos(time) * 0.05 * dtFactor;
+        bey.vy += Math.sin(time) * 0.05 * dtFactor;
+        break;
+      case 'BALANCE':
+        // Medium, sometimes aggressive sometimes still
+        const phase = Math.sin(time * 0.5);
+        if (phase > 0) {
+          bey.vx += Math.cos(time * 2 + idx * Math.PI) * moveSpeed * 0.1 * dtFactor;
+          bey.vy += Math.sin(time * 2 + idx * Math.PI) * moveSpeed * 0.1 * dtFactor;
+        } else {
+          const dxBal = cx - bey.x, dyBal = cy - bey.y;
+          bey.vx += dxBal * 0.002 * dtFactor;
+          bey.vy += dyBal * 0.002 * dtFactor;
+        }
+        break;
+    }
+
+    // === RAIL TRAVEL MODE ===
+    if (bey.onRail) {
+      // Travel along the rail at high speed
+      const railSpeed = 0.06 * (1 + bey.atk * 0.03) * dtFactor;
+      bey.railAngle += bey.railDir * railSpeed;
+
+      // Keep angle in 0..2PI
+      if (bey.railAngle > Math.PI * 2) bey.railAngle -= Math.PI * 2;
+      if (bey.railAngle < 0) bey.railAngle += Math.PI * 2;
+
+      // Position on the rail
+      const railR = radius - railWidth * 0.5;
+      bey.x = cx + Math.cos(bey.railAngle) * railR;
+      bey.y = cy + Math.sin(bey.railAngle) * railR;
+      bey.vx = 0;
+      bey.vy = 0;
+
+      // Rail glow while traveling
+      battleState.railGlow = 12;
+
+      // Speed trail particles
+      if (Math.random() < 0.4) {
+        particles.push(createParticle(bey.x, bey.y, '#ffdd00', 'speed'));
+      }
+
+      // Check if reached the ramp zone
+      const rampAngle = battleState.rampAngle;
+      const rampSize = battleState.rampSize;
+      let angleDiff = bey.railAngle - rampAngle;
+      // Normalize to -PI..PI
+      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
+      if (Math.abs(angleDiff) < rampSize * 0.5) {
+        // HIT THE RAMP — launch toward center!
+        bey.onRail = false;
+        const launchSpeed = 5 + bey.atk * 0.3;
+        // Aim toward center with slight offset toward the other bey
+        const toCenterX = cx - bey.x;
+        const toCenterY = cy - bey.y;
+        const toCenterDist = Math.sqrt(toCenterX * toCenterX + toCenterY * toCenterY);
+        bey.vx = (toCenterX / toCenterDist) * launchSpeed;
+        bey.vy = (toCenterY / toCenterDist) * launchSpeed;
+
+        // Big boost particles and screen shake
+        battleState.screenShake = 6;
+        battleState.railGlow = 20;
+        for (let i = 0; i < 12; i++) {
+          particles.push(createParticle(bey.x, bey.y, bey.color, 'explosion'));
+        }
+        for (let i = 0; i < 8; i++) {
+          particles.push(createParticle(bey.x, bey.y, '#ffdd00', 'speed'));
+        }
+      }
+
+      // Spin visual still updates
+      bey.angle += bey.angularVel * dtFactor * (bey.spin / bey.maxSpin) * 2; // spin faster on rail
+      continue; // skip normal physics while on rail
+    }
+
+    // Gravity toward center (stadium slope)
+    const dxG = cx - bey.x, dyG = cy - bey.y;
+    const distG = Math.sqrt(dxG * dxG + dyG * dyG);
+    bey.vx += (dxG / distG) * 0.02 * dtFactor;
+    bey.vy += (dyG / distG) * 0.02 * dtFactor;
+
+    // Friction
+    bey.vx *= (1 - 0.02 * dtFactor);
+    bey.vy *= (1 - 0.02 * dtFactor);
+
+    // Update position
+    bey.x += bey.vx * dtFactor;
+    bey.y += bey.vy * dtFactor;
+
+    // Spin visual
+    bey.angle += bey.angularVel * dtFactor * (bey.spin / bey.maxSpin);
+
+    // Wall collision
+    const distFromCenter = Math.sqrt((bey.x - cx) ** 2 + (bey.y - cy) ** 2);
+    const wallLimit = radius - bey.radius;
+
+    if (distFromCenter > wallLimit) {
+      // Check if it's a knockout
+      const speed = Math.sqrt(bey.vx * bey.vx + bey.vy * bey.vy);
+      // KO requires high speed — defense makes you heavier and harder to KO
+      const koThreshold = 7 + bey.def * 0.168;
+      if (speed > koThreshold && distFromCenter > wallLimit + 8) {
+        // KO!
+        bey.ko = true;
+        const otherIdx = idx === 0 ? 1 : 0;
+        battleState.slowMo = true;
+        battleState.slowMoTimer = 60;
+        // Spawn particles
+        for (let i = 0; i < 20; i++) {
+          particles.push(createParticle(bey.x, bey.y, bey.color, 'explosion'));
+        }
+        setTimeout(() => endRound('KO', otherIdx), 1500);
+        return;
+      }
+
+      const nx = (bey.x - cx) / distFromCenter;
+      const ny = (bey.y - cy) / distFromCenter;
+
+      // Check if hitting the rail zone — enter rail travel for Attack types
+      if (distFromCenter > radius - railWidth - bey.radius && bey.type === 'ATTACK' && !bey.onRail) {
+        bey.onRail = true;
+        bey.railAngle = Math.atan2(bey.y - cy, bey.x - cx);
+        // Travel direction: based on tangential velocity
+        const tangentVx = -ny, tangentVy = nx;
+        const tangentDot = bey.vx * tangentVx + bey.vy * tangentVy;
+        bey.railDir = tangentDot >= 0 ? 1 : -1;
+        battleState.railGlow = 15;
+        // Drain 25% spin on rail hit
+        bey.spin *= 0.75;
+        // Speed particles on entry
+        for (let i = 0; i < 5; i++) {
+          particles.push(createParticle(bey.x, bey.y, '#ffdd00', 'speed'));
+        }
+      } else if (!bey.onRail) {
+        // Normal bounce for non-Attack types
+        const dot = bey.vx * nx + bey.vy * ny;
+        bey.vx -= 2 * dot * nx * 0.7;
+        bey.vy -= 2 * dot * ny * 0.7;
+        bey.x = cx + nx * wallLimit;
+        bey.y = cy + ny * wallLimit;
+
+        if (distFromCenter > radius - railWidth - bey.radius) {
+          battleState.railGlow = 15;
+          // Drain 25% spin on rail hit
+          bey.spin *= 0.75;
+        }
+      }
+
+      // Wall spark
+      particles.push(createParticle(bey.x, bey.y, '#ffffff', 'spark'));
+    }
+  }
+
+  // Bey-to-bey collision
+  if (!beys[0].burst && !beys[0].ko && !beys[1].burst && !beys[1].ko) {
+    const dx = beys[1].x - beys[0].x;
+    const dy = beys[1].y - beys[0].y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const minDist = beys[0].radius + beys[1].radius;
+
+    if (dist < minDist && dist > 0) {
+      const nx = dx / dist, ny = dy / dist;
+
+      // Separate
+      const overlap = minDist - dist;
+      beys[0].x -= nx * overlap * 0.5;
+      beys[0].y -= ny * overlap * 0.5;
+      beys[1].x += nx * overlap * 0.5;
+      beys[1].y += ny * overlap * 0.5;
+
+      // Impact calculation
+      const relVx = beys[0].vx - beys[1].vx;
+      const relVy = beys[0].vy - beys[1].vy;
+      const impactSpeed = Math.abs(relVx * nx + relVy * ny);
+
+      // Type advantages
+      let bonus0 = 1, bonus1 = 1;
+      if (beys[0].type === 'ATTACK' && beys[1].type === 'STAMINA') bonus0 = 1.3;
+      else if (beys[0].type === 'STAMINA' && beys[1].type === 'DEFENSE') bonus0 = 1.2;
+      else if (beys[0].type === 'DEFENSE' && beys[1].type === 'ATTACK') bonus0 = 1.3;
+      if (beys[1].type === 'ATTACK' && beys[0].type === 'STAMINA') bonus1 = 1.3;
+      else if (beys[1].type === 'STAMINA' && beys[0].type === 'DEFENSE') bonus1 = 1.2;
+      else if (beys[1].type === 'DEFENSE' && beys[0].type === 'ATTACK') bonus1 = 1.3;
+
+      // Knockback — defense dramatically reduces knockback received
+      const weight0 = 1 + beys[0].def * 0.14;
+      const weight1 = 1 + beys[1].def * 0.14;
+      const totalWeight = weight0 + weight1;
+
+      // Higher defense = you resist more, opponent's attack matters but defense counters it
+      const kb0 = (impactSpeed * weight1 / totalWeight) * (beys[1].atk / 10) * bonus1 / (1 + beys[0].def * 0.067);
+      const kb1 = (impactSpeed * weight0 / totalWeight) * (beys[0].atk / 10) * bonus0 / (1 + beys[1].def * 0.067);
+
+      beys[0].vx -= nx * kb0 * 1.2;
+      beys[0].vy -= ny * kb0 * 1.2;
+      beys[1].vx += nx * kb1 * 1.2;
+      beys[1].vy += ny * kb1 * 1.2;
+
+      // Spin loss from collision — significantly reduced, defense is very effective
+      // High defense (9) gives ~3.7x damage reduction vs low defense (3) at ~1.9x
+      const spinLoss0 = impactSpeed * 0.18 * bonus1 / (1 + beys[0].def * 0.168);
+      const spinLoss1 = impactSpeed * 0.18 * bonus0 / (1 + beys[1].def * 0.168);
+      beys[0].spin -= spinLoss0;
+      beys[1].spin -= spinLoss1;
+
+      // Screen shake
+      battleState.screenShake = Math.min(impactSpeed * 2, 10);
+
+      // Spark particles
+      const sparkX = (beys[0].x + beys[1].x) / 2;
+      const sparkY = (beys[0].y + beys[1].y) / 2;
+      const numSparks = Math.min(Math.floor(impactSpeed * 3), 15);
+      for (let i = 0; i < numSparks; i++) {
+        particles.push(createParticle(sparkX, sparkY,
+          Math.random() > 0.5 ? beys[0].color : beys[1].color, 'spark'));
+      }
+
+      // Burst check — rarer, requires big hits, defense helps resist
+      [0, 1].forEach(i => {
+        const burstChance = (impactSpeed * 0.8) / (beys[i].burstResist * 20 + beys[i].def * 5);
+        if (Math.random() < burstChance && impactSpeed > 5 && !beys[i].preBurst) {
+          // Enter pre-burst tilt phase instead of instant burst
+          beys[i].preBurst = true;
+          beys[i].preBurstTimer = 90; // ~1.5 seconds of tilting before burst
+          beys[i].spin *= 0.3; // spin drops drastically
+          battleState.slowMo = true;
+          battleState.slowMoTimer = 100;
+        }
+      });
+    }
+  }
+
+  // Update pre-burst tilt countdown
+  beys.forEach((bey, idx) => {
+    if (bey.preBurst && !bey.burst) {
+      bey.preBurstTimer -= dtFactor;
+      if (bey.preBurstTimer <= 0) {
+        // Now actually burst
+        bey.burst = true;
+        for (let j = 0; j < 30; j++) {
+          particles.push(createParticle(bey.x, bey.y, bey.color, 'explosion'));
+        }
+        // Parts fly outward from center, exiting the stadium
+        const bCx = battleState.cx, bCy = battleState.cy;
+        const awayAngle = Math.atan2(bey.y - bCy, bey.x - bCx);
+        const partEmojis = ['⚙️', '🔩', '💫'];
+        bey.burstParts = partEmojis.map((emoji, pi) => {
+          const spreadAngle = awayAngle + (pi - 1) * 0.8; // spread 3 parts in a fan
+          const speed = 6 + Math.random() * 4;
+          return {
+            x: bey.x, y: bey.y,
+            vx: Math.cos(spreadAngle) * speed,
+            vy: Math.sin(spreadAngle) * speed,
+            rot: 0, emoji, size: 18
+          };
+        });
+        const other = idx === 0 ? 1 : 0;
+        setTimeout(() => endRound('BURST', other), 800);
+      }
+    }
+  });
+
+  // Check spin out
+  beys.forEach((bey, idx) => {
+    if (bey.burst || bey.ko) return;
+    if (bey.spin <= 0) {
+      bey.spin = 0;
+      bey.angularVel = 0;
+    }
+  });
+
+  // Check survivor finish
+  if (!battleState.finished) {
+    const alive = beys.filter(b => !b.burst && !b.ko);
+    const spinning = alive.filter(b => b.spin > 0);
+
+    if (alive.length === 2 && spinning.length === 0) {
+      endRound('DRAW', -1);
+    } else if (alive.length === 2 && spinning.length === 1) {
+      const winnerIdx = beys.indexOf(spinning[0]);
+      battleState.slowMo = true;
+      battleState.slowMoTimer = 40;
+      setTimeout(() => endRound('SURVIVOR', winnerIdx), 1000);
+    }
+  }
+
+  // Update particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx * dtFactor;
+    p.y += p.vy * dtFactor;
+    p.vy += 0.1 * dtFactor; // gravity
+    p.life -= dtFactor;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // Update burst parts — fly outward past the stadium edge
+  beys.forEach(bey => {
+    if (bey.burst && bey.burstParts) {
+      bey.burstParts.forEach(part => {
+        part.x += part.vx * dtFactor;
+        part.y += part.vy * dtFactor;
+        // No gravity — parts fly straight out of the stadium
+        part.rot += 0.2 * dtFactor;
+        // Shrink as they fly away
+        if (part.size > 6) part.size -= 0.08 * dtFactor;
+        // Trail particles
+        if (Math.random() < 0.3) {
+          particles.push(createParticle(part.x, part.y, bey.color, 'spark'));
+        }
+      });
+    }
+  });
+
+  // Screen shake decay
+  if (battleState.screenShake > 0) battleState.screenShake *= 0.9;
+
+  // Rail glow decay
+  if (battleState.railGlow > 0) battleState.railGlow -= 0.5;
+
+  // Update spin bars
+  beys.forEach((bey, idx) => {
+    const pct = Math.max(0, bey.spin / bey.maxSpin * 100);
+    const bar = document.getElementById(`spin-bar-${idx + 1}`);
+    if (bar) bar.style.width = pct + '%';
+  });
+
+  // ===== RENDER =====
+  ctx.save();
+
+  // Screen shake
+  if (battleState.screenShake > 0.5) {
+    ctx.translate(
+      (Math.random() - 0.5) * battleState.screenShake,
+      (Math.random() - 0.5) * battleState.screenShake
+    );
+  }
+
+  // Clear and blit cached stadium (much faster than redrawing hexagons every frame)
+  ctx.clearRect(-10, -10, size + 20, size + 20);
+  ctx.drawImage(battleState.stadiumCache, 0, 0);
+
+  // Animated Xtreme Dash line (spins during battle)
+  const stColors = selectedStadium ? selectedStadium.colors : ['#00d4ff', '#0066aa'];
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius - railWidth, 0, Math.PI * 2);
+  ctx.setLineDash([14, 10]);
+  ctx.lineDashOffset = -battleState.time * 0.5;
+  const dashAlpha = battleState.railGlow > 0 ? 'dd' : '66';
+  ctx.strokeStyle = stColors[0] + dashAlpha;
+  ctx.lineWidth = 3;
+  if (battleState.railGlow > 0) { ctx.shadowColor = stColors[0]; ctx.shadowBlur = 20; }
+  ctx.stroke();
+  ctx.restore();
+
+  // Rail glow flash on hit
+  if (battleState.railGlow > 0) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius - railWidth / 2, 0, Math.PI * 2);
+    const glowHex = Math.min(255, Math.floor(battleState.railGlow * 12)).toString(16).padStart(2, '0');
+    ctx.strokeStyle = stColors[0] + glowHex;
+    ctx.lineWidth = railWidth;
+    ctx.stroke();
+  }
+
+  // === STADIUM-SPECIFIC ANIMATED EFFECTS ===
+  const stadiumName = selectedStadium ? selectedStadium.name : '';
+
+  if (stadiumName === 'Water Dome') {
+    ctx.save();
+    // Animated water ripples expanding from center
+    const numRipples = 5;
+    for (let r = 0; r < numRipples; r++) {
+      const ripplePhase = (battleState.time * 0.8 + r * (Math.PI * 2 / numRipples)) % (Math.PI * 2);
+      const rippleRadius = (ripplePhase / (Math.PI * 2)) * (radius - railWidth - 10);
+      const rippleAlpha = (1 - rippleRadius / (radius - railWidth)) * 0.25;
+      if (rippleAlpha > 0) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, rippleRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 200, 255, ${rippleAlpha})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+    // Wavy water surface overlay
+    ctx.beginPath();
+    for (let a = 0; a <= 360; a += 2) {
+      const angle = (a / 180) * Math.PI;
+      const waveR = (radius - railWidth) * 0.6 + Math.sin(angle * 6 + battleState.time * 1.5) * 15 + Math.cos(angle * 4 - battleState.time) * 10;
+      const px = cx + Math.cos(angle) * waveR;
+      const py = cy + Math.sin(angle) * waveR;
+      if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(0, 180, 255, 0.12)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(0, 140, 220, 0.04)';
+    ctx.fill();
+    // Water droplet particles near edges on collisions
+    if (battleState.railGlow > 0) {
+      for (let i = 0; i < 3; i++) {
+        const splashAngle = Math.random() * Math.PI * 2;
+        const splashR = radius - railWidth + Math.random() * 10;
+        particles.push(createParticle(cx + Math.cos(splashAngle) * splashR, cy + Math.sin(splashAngle) * splashR, '#00ccff', 'explosion'));
+      }
+    }
+    ctx.restore();
+  }
+
+  if (stadiumName === 'Light Dome') {
+    ctx.save();
+    // Rotating light rays from center
+    const numRays = 12;
+    const rayRotation = battleState.time * 0.3;
+    for (let r = 0; r < numRays; r++) {
+      const rayAngle = (r / numRays) * Math.PI * 2 + rayRotation;
+      const rayLen = (radius - railWidth) * 0.9;
+      const pulse = 0.08 + Math.sin(battleState.time * 2 + r * 0.8) * 0.05;
+      const rayGrad = ctx.createLinearGradient(cx, cy, cx + Math.cos(rayAngle) * rayLen, cy + Math.sin(rayAngle) * rayLen);
+      rayGrad.addColorStop(0, `rgba(255, 238, 136, ${pulse})`);
+      rayGrad.addColorStop(0.7, `rgba(255, 255, 200, ${pulse * 0.5})`);
+      rayGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+      ctx.beginPath();
+      const spread = 0.08;
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(rayAngle - spread) * rayLen, cy + Math.sin(rayAngle - spread) * rayLen);
+      ctx.lineTo(cx + Math.cos(rayAngle + spread) * rayLen, cy + Math.sin(rayAngle + spread) * rayLen);
+      ctx.closePath();
+      ctx.fillStyle = rayGrad;
+      ctx.fill();
+    }
+    // Bright center glow pulse
+    const centerGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 60);
+    const glowPulse = 0.15 + Math.sin(battleState.time * 3) * 0.08;
+    centerGlow.addColorStop(0, `rgba(255, 255, 220, ${glowPulse})`);
+    centerGlow.addColorStop(0.5, `rgba(255, 238, 136, ${glowPulse * 0.5})`);
+    centerGlow.addColorStop(1, 'rgba(255, 238, 136, 0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, 60, 0, Math.PI * 2);
+    ctx.fillStyle = centerGlow;
+    ctx.fill();
+    // Sparkle flashes on collisions
+    if (battleState.railGlow > 0) {
+      for (let i = 0; i < 4; i++) {
+        const sparkAngle = Math.random() * Math.PI * 2;
+        const sparkR = Math.random() * (radius - railWidth);
+        particles.push(createParticle(cx + Math.cos(sparkAngle) * sparkR, cy + Math.sin(sparkAngle) * sparkR, '#ffee88', 'spark'));
+      }
+    }
+    ctx.restore();
+  }
+
+  if (stadiumName === 'Number Dome') {
+    ctx.save();
+    // Initialize falling numbers array if not present
+    if (!battleState.fallingNumbers) {
+      battleState.fallingNumbers = [];
+      for (let i = 0; i < 40; i++) {
+        battleState.fallingNumbers.push({
+          x: cx + (Math.random() - 0.5) * radius * 2,
+          y: cy + (Math.random() - 0.5) * radius * 2,
+          digit: Math.floor(Math.random() * 10).toString(),
+          speed: 0.5 + Math.random() * 1.5,
+          size: 10 + Math.random() * 18,
+          alpha: 0.05 + Math.random() * 0.15
+        });
+      }
+    }
+    // Update and draw falling numbers
+    const stArea = radius - railWidth - 5;
+    battleState.fallingNumbers.forEach(n => {
+      n.y += n.speed * dtFactor;
+      // Reset to top if fallen past stadium
+      if (n.y > cy + stArea) {
+        n.y = cy - stArea;
+        n.x = cx + (Math.random() - 0.5) * stArea * 2;
+        n.digit = Math.floor(Math.random() * 10).toString();
+      }
+      const dist = Math.sqrt((n.x - cx) ** 2 + (n.y - cy) ** 2);
+      if (dist < stArea) {
+        ctx.font = `bold ${n.size}px Orbitron, monospace`;
+        ctx.fillStyle = `rgba(0, 255, 100, ${n.alpha})`;
+        ctx.textAlign = 'center';
+        ctx.fillText(n.digit, n.x, n.y);
+      }
+    });
+    // Matrix-style column streaks
+    for (let c = 0; c < 8; c++) {
+      const colX = cx + (c - 3.5) * 40;
+      const streakY = cy + Math.sin(battleState.time * 1.2 + c * 1.5) * stArea * 0.6;
+      for (let s = 0; s < 5; s++) {
+        const sy = streakY - s * 16;
+        const dist = Math.sqrt((colX - cx) ** 2 + (sy - cy) ** 2);
+        if (dist < stArea) {
+          const a = (0.2 - s * 0.04);
+          ctx.font = 'bold 12px Orbitron, monospace';
+          ctx.fillStyle = `rgba(0, 255, 100, ${Math.max(0, a)})`;
+          ctx.textAlign = 'center';
+          ctx.fillText(Math.floor(Math.random() * 10).toString(), colX, sy);
+        }
+      }
+    }
+    // Flash numbers on collision
+    if (battleState.railGlow > 0) {
+      for (let i = 0; i < 5; i++) {
+        const na = Math.random() * Math.PI * 2;
+        const nr = Math.random() * stArea * 0.7;
+        ctx.font = 'bold 24px Orbitron, monospace';
+        ctx.fillStyle = 'rgba(0, 255, 130, 0.5)';
+        ctx.textAlign = 'center';
+        ctx.fillText(Math.floor(Math.random() * 10).toString(), cx + Math.cos(na) * nr, cy + Math.sin(na) * nr);
+      }
+    }
+    ctx.restore();
+  }
+
+  if (stadiumName === 'Hypnotise Dome') {
+    ctx.save();
+    const stArea = radius - railWidth - 5;
+    // Rotating spiral arms
+    const numSpirals = 6;
+    const spiralRot = battleState.time * 0.6;
+    for (let s = 0; s < numSpirals; s++) {
+      const baseAngle = (s / numSpirals) * Math.PI * 2 + spiralRot;
+      ctx.beginPath();
+      for (let t = 0; t < 100; t++) {
+        const progress = t / 100;
+        const spiralR = progress * stArea * 0.95;
+        const spiralAngle = baseAngle + progress * Math.PI * 3;
+        const px = cx + Math.cos(spiralAngle) * spiralR;
+        const py = cy + Math.sin(spiralAngle) * spiralR;
+        if (t === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      const spiralAlpha = 0.06 + Math.sin(battleState.time * 2 + s) * 0.03;
+      ctx.strokeStyle = s % 2 === 0
+        ? `rgba(204, 0, 255, ${spiralAlpha})`
+        : `rgba(255, 0, 204, ${spiralAlpha})`;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+    // Pulsing concentric rings
+    const numRings = 6;
+    for (let r = 0; r < numRings; r++) {
+      const ringPhase = (battleState.time * 1.5 + r * 0.8) % (Math.PI * 2);
+      const ringR = (r / numRings) * stArea * 0.85 + Math.sin(ringPhase) * 15;
+      const ringAlpha = 0.05 + Math.sin(battleState.time * 3 + r * 1.2) * 0.04;
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.max(5, ringR), 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(200, 0, 255, ${Math.max(0, ringAlpha)})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    // Hypnotic center eye
+    const eyePulse = 0.12 + Math.sin(battleState.time * 4) * 0.06;
+    const eyeGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 45);
+    eyeGrad.addColorStop(0, `rgba(255, 0, 220, ${eyePulse})`);
+    eyeGrad.addColorStop(0.5, `rgba(160, 0, 255, ${eyePulse * 0.5})`);
+    eyeGrad.addColorStop(1, 'rgba(100, 0, 200, 0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, 45, 0, Math.PI * 2);
+    ctx.fillStyle = eyeGrad;
+    ctx.fill();
+    // Sparkle on collisions
+    if (battleState.railGlow > 0) {
+      for (let i = 0; i < 5; i++) {
+        const sa = Math.random() * Math.PI * 2;
+        const sr = Math.random() * stArea * 0.8;
+        particles.push(createParticle(cx + Math.cos(sa) * sr, cy + Math.sin(sa) * sr, '#cc00ff', 'spark'));
+      }
+    }
+    ctx.restore();
+  }
+
+  // Draw particles
+  particles.forEach(p => {
+    ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+    if (p.type === 'spark') {
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+    } else if (p.type === 'explosion') {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * (p.life / p.maxLife), 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    } else if (p.type === 'speed') {
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - p.vx * 3, p.y - p.vy * 3);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  });
+
+  // Draw beyblades
+  beys.forEach((bey, idx) => {
+    if (bey.ko) return;
+
+    if (bey.burst) {
+      // Draw burst parts flying out of stadium
+      if (bey.burstParts) {
+        bey.burstParts.forEach(part => {
+          const partSize = Math.max(6, part.size || 18);
+          ctx.save();
+          ctx.translate(part.x, part.y);
+          ctx.rotate(part.rot);
+          ctx.font = partSize + 'px serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(part.emoji, 0, 0);
+          ctx.restore();
+        });
+      }
+      return;
+    }
+
+    ctx.save();
+    ctx.translate(bey.x, bey.y);
+
+    // Pre-burst tilt — Beyblade tilts down dramatically before bursting
+    if (bey.preBurst && !bey.burst) {
+      const tiltProgress = 1 - (bey.preBurstTimer / 90); // 0 to 1
+      const tiltAmount = tiltProgress * 0.75; // squash up to 75%
+      const wobbleFreq = 6 + tiltProgress * 25; // increasingly frantic wobble
+      const wobbleAmt = tiltProgress * 0.25;
+      ctx.scale(1, 1 - tiltAmount);
+      ctx.translate(0, tiltAmount * bey.radius * 1.2); // shift down more as it tilts
+      ctx.rotate(Math.sin(battleState.time * wobbleFreq) * wobbleAmt); // frantic shaking
+
+      // Red danger glow pulsing around the Beyblade
+      const flashAlpha = 0.3 + Math.sin(battleState.time * 12) * 0.3 * tiltProgress;
+      ctx.shadowColor = '#ff0000';
+      ctx.shadowBlur = 30 + tiltProgress * 40;
+
+      // Draw pulsing red warning ring
+      ctx.beginPath();
+      ctx.arc(0, 0, bey.radius + 8 + Math.sin(battleState.time * 10) * 5, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(255, 0, 0, ${flashAlpha})`;
+      ctx.lineWidth = 3 + tiltProgress * 3;
+      ctx.stroke();
+
+      // "BURST!" warning text above the Beyblade
+      if (tiltProgress > 0.3) {
+        ctx.save();
+        ctx.scale(1, 1 / (1 - tiltAmount)); // undo squash for text
+        const textAlpha = Math.sin(battleState.time * 8) > 0 ? 1 : 0.3;
+        ctx.font = 'bold 14px Orbitron';
+        ctx.fillStyle = `rgba(255, 50, 50, ${textAlpha})`;
+        ctx.textAlign = 'center';
+        ctx.fillText('BURST!', 0, -bey.radius - 20);
+        ctx.restore();
+      }
+    }
+
+    ctx.rotate(bey.angle);
+
+    // Wobble when low spin
+    const wobble = bey.spin < 20 ? Math.sin(battleState.time * 0.3) * (1 - bey.spin / 20) * 3 : 0;
+    ctx.rotate(wobble * 0.05);
+
+    // Glow
+    const glowAlpha = Math.max(0.1, bey.spin / bey.maxSpin * 0.5);
+    ctx.shadowColor = bey.color;
+    ctx.shadowBlur = 15 * glowAlpha;
+
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(0, 0, bey.radius, 0, Math.PI * 2);
+    ctx.strokeStyle = bey.color;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Inner fill
+    ctx.beginPath();
+    ctx.arc(0, 0, bey.radius - 2, 0, Math.PI * 2);
+    ctx.fillStyle = bey.color + '33';
+    ctx.fill();
+
+    // Blade lines
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * 6, Math.sin(a) * 6);
+      ctx.lineTo(Math.cos(a) * (bey.radius - 4), Math.sin(a) * (bey.radius - 4));
+      ctx.strokeStyle = bey.color + '66';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    ctx.shadowBlur = 0;
+
+    // Emoji (counter-rotate so it stays upright-ish)
+    ctx.rotate(-bey.angle);
+    ctx.font = '20px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(bey.emoji, 0, 0);
+
+    // Health bar above Beyblade
+    const barWidth = bey.radius * 2.2;
+    const barHeight = 5;
+    const barX = -barWidth / 2;
+    const barY = -bey.radius - 14;
+    const spinPct = Math.max(0, bey.spin / bey.maxSpin);
+
+    // Bar background
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
+
+    // Bar fill — green > yellow > red as spin drops
+    let barColor;
+    if (spinPct > 0.5) {
+      barColor = '#00ff88';
+    } else if (spinPct > 0.25) {
+      barColor = '#ffd700';
+    } else {
+      barColor = '#ff3366';
+    }
+    ctx.fillStyle = barColor;
+    ctx.fillRect(barX, barY, barWidth * spinPct, barHeight);
+
+    // Bar border
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 0.5;
+    ctx.strokeRect(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
+
+    ctx.restore();
+  });
+
+  ctx.restore();
+
+  if (!battleState.finished) {
+    battleAnimFrame = requestAnimationFrame(battleLoop);
+  }
+}
+
+function createParticle(x, y, color, type) {
+  const speed = type === 'explosion' ? 4 : type === 'speed' ? 2 : 3;
+  return {
+    x, y,
+    vx: (Math.random() - 0.5) * speed * 2,
+    vy: (Math.random() - 0.5) * speed * 2 - (type === 'explosion' ? 2 : 0),
+    color,
+    type,
+    life: type === 'explosion' ? 40 : type === 'speed' ? 15 : 20,
+    maxLife: type === 'explosion' ? 40 : type === 'speed' ? 15 : 20,
+    size: type === 'explosion' ? 3 + Math.random() * 4 : 2
+  };
+}
+
+// ==================== ROUND END ====================
+function endRound(finishType, winnerIdx) {
+  if (battleState.finished) return;
+  battleState.finished = true;
+
+  if (battleTimerInterval) clearInterval(battleTimerInterval);
+  if (battleAnimFrame) cancelAnimationFrame(battleAnimFrame);
+
+  let points = 0;
+  let finishLabel = '';
+
+  switch (finishType) {
+    case 'DRAW':
+      points = 1;
+      finishLabel = 'DRAW!';
+      players[0].score += 1;
+      players[1].score += 1;
+      break;
+    case 'SURVIVOR':
+      points = 2;
+      finishLabel = 'SURVIVOR FINISH!';
+      players[winnerIdx].score += 2;
+      break;
+    case 'KO':
+      points = 3;
+      finishLabel = 'KNOCKOUT FINISH!';
+      players[winnerIdx].score += 3;
+      break;
+    case 'BURST':
+      points = 4;
+      finishLabel = 'BURST FINISH!';
+      players[winnerIdx].score += 4;
+      break;
+  }
+
+  roundResults.push({ type: finishType, label: finishLabel, winner: winnerIdx, points });
+
+  // Update score display
+  document.getElementById('score-p1').textContent = players[0].score;
+  document.getElementById('score-p2').textContent = players[1].score;
+
+  // Show banner
+  const banner = document.getElementById('battle-banner');
+  document.getElementById('banner-finish-type').textContent = finishLabel;
+
+  if (finishType === 'DRAW') {
+    document.getElementById('banner-winner').textContent = 'Both bladers draw!';
+    document.getElementById('banner-points').textContent = '+1 point each';
+  } else {
+    document.getElementById('banner-winner').textContent = `${players[winnerIdx].name} wins!`;
+    document.getElementById('banner-points').textContent = `+${points} points`;
+  }
+
+  // Change button text if last round
+  const nextBtn = banner.querySelector('.btn-next-round');
+  if (currentRound >= 3) {
+    nextBtn.textContent = 'SEE RESULTS →';
+  } else {
+    nextBtn.textContent = 'NEXT ROUND →';
+  }
+
+  banner.classList.add('active');
+}
+
+function nextRound() {
+  document.getElementById('battle-banner').classList.remove('active');
+
+  if (currentRound >= 3) {
+    showResults();
+    return;
+  }
+
+  currentRound++;
+  battleState = null;
+  if (battleAnimFrame) cancelAnimationFrame(battleAnimFrame);
+  showScreen('battle-screen');
+  setupBattleUI();
+  setupBattleCanvas();
+}
+
+// ==================== RESULTS ====================
+function showResults() {
+  showScreen('results-screen');
+
+  const p1 = players[0], p2 = players[1];
+  let winnerName, winnerAvatar;
+
+  if (p1.score > p2.score) {
+    winnerName = p1.name;
+    winnerAvatar = p1.avatar;
+  } else if (p2.score > p1.score) {
+    winnerName = p2.name;
+    winnerAvatar = p2.avatar;
+  } else {
+    winnerName = "IT'S A TIE!";
+    winnerAvatar = "🤝";
+  }
+
+  document.getElementById('results-winner-name').textContent = winnerName;
+  document.getElementById('results-winner-avatar').textContent = winnerAvatar;
+  document.getElementById('results-p1-name').textContent = p1.name;
+  document.getElementById('results-p1-score').textContent = p1.score;
+  document.getElementById('results-p2-name').textContent = p2.name;
+  document.getElementById('results-p2-score').textContent = p2.score;
+
+  // Round breakdown
+  const rb = document.getElementById('round-breakdown');
+  let rbHtml = '';
+  roundResults.forEach((r, i) => {
+    const wName = r.winner >= 0 ? players[r.winner].name : 'Both';
+    rbHtml += `
+      <div class="round-row">
+        <span class="round-label">Round ${i + 1}</span>
+        <span class="round-type">${r.label}</span>
+        <span class="round-winner-name">${wName}</span>
+        <span class="round-pts">+${r.points}pts</span>
+      </div>
+    `;
+  });
+  rb.innerHTML = rbHtml;
+
+  // Confetti
+  spawnConfetti();
+}
+
+function spawnConfetti() {
+  const container = document.getElementById('confetti-container');
+  container.innerHTML = '';
+  const colors = ['#ff3366', '#00d4ff', '#ffd700', '#00ff88', '#ff00aa', '#ff5722'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.width = (5 + Math.random() * 10) + 'px';
+    piece.style.height = (5 + Math.random() * 10) + 'px';
+    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+    piece.style.animationDuration = (2 + Math.random() * 3) + 's';
+    piece.style.animationDelay = Math.random() * 2 + 's';
+    container.appendChild(piece);
+  }
+}
+
+function rematch() {
+  players[0].score = 0;
+  players[1].score = 0;
+  currentRound = 1;
+  roundResults = [];
+  showScreen('stadium-select');
+  renderStadiumSelect();
+}
+
+function newGame() {
+  showScreen('title-screen');
+}
+
+// Close modal on overlay click
+document.getElementById('how-to-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeHowTo();
+});
+</script>
+</body>
+</html>
